@@ -1,12 +1,51 @@
 # JIVS Migration Visual Companion - Progress Report
 
-## Session 21: Regression Testing Verification
+## Session 22: Regression Testing Verification
 
 ### Date: January 21, 2026
 
 ---
 
 ## REGRESSION TESTS COMPLETED
+
+All regression tests passed successfully:
+
+1. **Feature #81: Pagination resets when filters change** ✅
+   - Navigated to reconciliation table
+   - Went to page 5 (URL: ?page=5)
+   - Applied "Failed" status filter
+   - Pagination reset to page 1 (URL changed to ?status=failed)
+   - Now showing "Showing 1 to 20 of 1,510 records"
+
+2. **Feature #61: Invalid form input shows field error** ✅
+   - Navigated to registration form
+   - Entered invalid email format "invalid-email"
+   - Clicked submit
+   - Error message appeared: "Please enter a valid email address"
+   - Form was not submitted (still on /register page)
+   - Other field-level errors also displayed correctly
+
+3. **Feature #145: Cancel button on forms returns to previous page** ✅
+   - Navigated to dashboard list
+   - Clicked "Create Dashboard"
+   - Filled in data: "Test Cancel Dashboard 12345"
+   - Clicked Cancel
+   - Confirmation dialog appeared ("Unsaved Changes")
+   - Clicked "Discard" to confirm
+   - Returned to dashboard list
+   - No dashboard was created (verified list unchanged)
+
+### Screenshots Captured
+- regression-session22-form-validation.png
+- regression-session22-dashboards-list.png
+
+---
+
+## Session 21: Regression Testing Verification
+
+### Date: January 21, 2026
+
+---
 
 All regression tests passed successfully:
 
@@ -189,6 +228,7 @@ Default credentials:
 
 | Session | Features Completed | Progress |
 |---------|-------------------|----------|
+| 22 | Regression testing (#81, #61, #145) | 100% (154/154) |
 | 21 | Regression testing (#11, #71, #90) | 100% (154/154) |
 | 20 | Regression testing (#27, #134) | 100% (154/154) |
 | 19 | Regression testing (#45, #50, #61) | 100% (154/154) |
