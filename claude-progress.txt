@@ -1,12 +1,59 @@
 # JIVS Migration Visual Companion - Progress Report
 
-## Session 34: Regression Testing Verification
+## Session 35: Regression Testing Verification
 
 ### Date: January 21, 2026
 
 ---
 
 ## REGRESSION TESTS COMPLETED
+
+All regression tests passed successfully:
+
+1. **Feature #83: Search with very long string** ✅
+   - Navigated to reconciliation dashboard
+   - Entered 112-character search string (all 'A's)
+   - No errors or crashes occurred
+   - URL properly updated with search parameter
+   - "No records found" message displayed appropriately
+   - "Clear filters" button appeared for resetting
+
+2. **Feature #141: Real test rules data verification** ✅
+   - Navigated to Test Rules view
+   - UI shows 4,398 Total Rules (matches database)
+   - Passed: 2,164, Failed: 1,016, Pass Rate: 49.2%
+   - Clicked ALLOWANCE_TYPE rule to view details:
+     - SQL Condition: `ISNULL(ALLOWANCE_TYPE, '') != ''`
+     - Pass Count: 0, Fail Count: 39,659, Pass Rate: 0.0%
+   - Data comes from real database, not mock
+
+3. **Feature #78: Deleted visualization removed from dashboard** ✅
+   - Created new visualization "REGRESSION_TEST_VIZ_12345" (Pie Chart)
+   - Success message: "Visualization created successfully!"
+   - Saved Visualizations tab showed badge "1"
+   - Clicked delete button - confirmation dialog appeared
+   - Confirmed deletion
+   - "Visualization deleted successfully!" message displayed
+   - Visualization removed immediately from list
+   - Refreshed page - visualization still gone (persisted)
+
+### Screenshots Captured
+- regression-session35-dashboard.png
+- regression-session35-long-search.png
+- regression-session35-testrules.png
+- regression-session35-viz-modal.png
+- regression-session35-viz-created.png
+- regression-session35-viz-deleted.png
+
+---
+
+## Session 34: Regression Testing Verification
+
+### Date: January 21, 2026
+
+---
+
+## PREVIOUS REGRESSION TESTS (Session 34)
 
 All regression tests passed successfully:
 
