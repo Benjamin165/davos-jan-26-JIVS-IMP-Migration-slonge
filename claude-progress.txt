@@ -1,6 +1,6 @@
 # JIVS Migration Visual Companion - Progress Report
 
-## Session 16: Regression Testing Verification
+## Session 17: Regression Testing Verification
 
 ### Date: January 21, 2026
 
@@ -10,29 +10,32 @@
 
 All regression tests passed successfully:
 
-1. **Dashboard Overview** ✅
-   - Stats cards displaying correctly (3,975 total objects, 1.8% success rate, 1,510 failed, 1,646 warnings)
-   - Charts rendering properly (Status Distribution bar chart, Severity Breakdown donut chart)
-   - Data table with pagination (3,975 records)
-   - AI Recommendations visible and readable in light mode
+1. **Feature #8: Reconciliation data table displays records** ✅
+   - Dashboard loads correctly with 3,975 total objects
+   - Stats cards visible: Success Rate 1.8%, Failed 1,510, Warnings 1,646
+   - Data table displays with pagination (3,975 records)
+   - Column headers visible and sortable
+   - AI Recommendations section visible in light mode
 
-2. **Feature #4: Password reset request** ✅
-   - Navigated to login page
-   - Clicked "Forgot password?" link
-   - Entered email (admin@jivs.com)
-   - Clicked "Send Reset Link"
-   - Success message displayed: "Check your email - If an account exists with that email, we've sent password reset instructions."
-   - API call logged in backend (`POST /api/auth/reset-password`)
+2. **Feature #84: Multiple filters combined correctly** ✅
+   - Applied status filter: "Failed" (1,510 records)
+   - Applied search term: "MARA" (36 matching records)
+   - Applied column sort: ID descending
+   - All criteria combined correctly - results show only Failed MARA records sorted by ID
+   - URL updates with all filter parameters
 
-3. **Visualization Builder** ✅
-   - Create Custom wizard opened successfully
-   - Step 1: Chart type selection worked (6 types available)
-   - Step 2: Data field mapping visible
-   - Step 3: Filter configuration available
-   - Step 4: Preview generated correctly with real data
+3. **Feature #71: Direct URL access with valid auth** ✅
+   - Bookmarked URL with query params loads correctly
+   - Filter state preserved: status=failed, search=MARA, sort_order=desc
+   - User remains authenticated after navigation
+   - All UI elements restore correctly
 
 ### Minor Note
 - React warning about forwardRef in AIRecommendationCard component (non-breaking, cosmetic warning)
+
+---
+
+## Session 16: Regression Testing Verification (Previous)
 
 ---
 
@@ -132,6 +135,7 @@ Default credentials:
 
 | Session | Features Completed | Progress |
 |---------|-------------------|----------|
+| 17 | Regression testing (#8, #84, #71) | 100% (154/154) |
 | 16 | Regression testing (Dashboard, Password Reset, Visualizations) | 100% (154/154) |
 | 15 | Regression testing (3 features verified), server config | 100% (154/154) |
 | 14 | Regression testing (3 features verified) | 100% (154/154) |
