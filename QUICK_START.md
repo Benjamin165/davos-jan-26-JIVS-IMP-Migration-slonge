@@ -57,10 +57,10 @@ node -e "console.log(require('crypto').randomBytes(64).toString('hex'))" > jwt_s
 
 # Edit backend/.env and paste the JWT secret
 # Then start containers
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 ```
 
 ## Troubleshooting
