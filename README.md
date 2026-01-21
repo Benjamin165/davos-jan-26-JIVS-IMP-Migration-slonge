@@ -191,7 +191,7 @@ After running the setup script:
 
 | Name | Role | GitHub |
 |------|------|--------|
-| [Your Name] | Full Stack Developer | [@Benjamin165](https://github.com/Benjamin165) |
+| Benjamin Tobler | Full Stack Developer | [@Benjamin165](https://github.com/Benjamin165) |
 
 ## Results
 
