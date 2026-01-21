@@ -398,7 +398,7 @@ function SortableHeader({ label, column, currentSort, onSort }) {
   return (
     <th
       onClick={() => onSort(column)}
-      className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-dark-600/50 transition-colors select-none"
+      className="px-4 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-200 dark:hover:bg-dark-600/50 transition-colors select-none"
     >
       <div className="flex items-center gap-1">
         {label}
@@ -479,7 +479,7 @@ function DataTable({ data, pagination, isLoading, onPageChange, onSearch, onFilt
             <select
               value={filters?.status || ''}
               onChange={(e) => handleFilterChange('status', e.target.value)}
-              className="px-3 py-2 bg-dark-700 border border-dark-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="px-3 py-2 bg-white dark:bg-dark-700 border border-gray-300 dark:border-dark-600 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
               aria-label="Filter by status"
             >
               <option value="">All Statuses</option>
@@ -494,7 +494,7 @@ function DataTable({ data, pagination, isLoading, onPageChange, onSearch, onFilt
             <select
               value={filters?.severity || ''}
               onChange={(e) => handleFilterChange('severity', e.target.value)}
-              className="px-3 py-2 bg-dark-700 border border-dark-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="px-3 py-2 bg-white dark:bg-dark-700 border border-gray-300 dark:border-dark-600 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
               aria-label="Filter by severity"
             >
               <option value="">All Severities</option>
@@ -513,7 +513,7 @@ function DataTable({ data, pagination, isLoading, onPageChange, onSearch, onFilt
                   placeholder="Search records..."
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
-                  className="pl-10 pr-4 py-2 bg-dark-700 border border-dark-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="pl-10 pr-4 py-2 bg-white dark:bg-dark-700 border border-gray-300 dark:border-dark-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
               </div>
               <button type="submit" className="btn-secondary px-4 py-2 text-sm">
@@ -536,7 +536,7 @@ function DataTable({ data, pagination, isLoading, onPageChange, onSearch, onFilt
 
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-dark-700/50">
+          <thead className="bg-gray-100 dark:bg-dark-700/50">
             <tr>
               <SortableHeader label="ID" column="id" currentSort={sort} onSort={handleSort} />
               <SortableHeader label="Source Object" column="source_object" currentSort={sort} onSort={handleSort} />
@@ -1064,25 +1064,25 @@ export default function Dashboard() {
         >
           <h3 className="text-lg font-semibold mb-4">Quick Stats</h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
-            <div className="p-4 rounded-lg bg-dark-700/50">
-              <p className="text-2xl font-bold text-blue-400">{summary.pending || 0}</p>
-              <p className="text-sm text-gray-400">Pending</p>
+            <div className="p-4 rounded-lg bg-gray-100 dark:bg-dark-700/50">
+              <p className="text-2xl font-bold text-blue-500 dark:text-blue-400">{summary.pending || 0}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Pending</p>
             </div>
-            <div className="p-4 rounded-lg bg-dark-700/50">
-              <p className="text-2xl font-bold text-yellow-400">{summary.running || 0}</p>
-              <p className="text-sm text-gray-400">Running</p>
+            <div className="p-4 rounded-lg bg-gray-100 dark:bg-dark-700/50">
+              <p className="text-2xl font-bold text-yellow-500 dark:text-yellow-400">{summary.running || 0}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Running</p>
             </div>
-            <div className="p-4 rounded-lg bg-dark-700/50">
-              <p className="text-2xl font-bold text-green-400">{summary.completed || 0}</p>
-              <p className="text-sm text-gray-400">Completed</p>
+            <div className="p-4 rounded-lg bg-gray-100 dark:bg-dark-700/50">
+              <p className="text-2xl font-bold text-green-500 dark:text-green-400">{summary.completed || 0}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Completed</p>
             </div>
-            <div className="p-4 rounded-lg bg-dark-700/50">
-              <p className="text-2xl font-bold text-red-400">{summary.failed || 0}</p>
-              <p className="text-sm text-gray-400">Failed</p>
+            <div className="p-4 rounded-lg bg-gray-100 dark:bg-dark-700/50">
+              <p className="text-2xl font-bold text-red-500 dark:text-red-400">{summary.failed || 0}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Failed</p>
             </div>
-            <div className="p-4 rounded-lg bg-dark-700/50">
-              <p className="text-2xl font-bold text-orange-400">{summary.warnings || 0}</p>
-              <p className="text-sm text-gray-400">Warnings</p>
+            <div className="p-4 rounded-lg bg-gray-100 dark:bg-dark-700/50">
+              <p className="text-2xl font-bold text-orange-500 dark:text-orange-400">{summary.warnings || 0}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Warnings</p>
             </div>
           </div>
         </motion.div>
