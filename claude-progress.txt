@@ -1,12 +1,47 @@
 # JIVS Migration Visual Companion - Progress Report
 
-## Session 28: Regression Testing Verification
+## Session 29: Regression Testing Verification
 
 ### Date: January 21, 2026
 
 ---
 
 ## REGRESSION TESTS COMPLETED
+
+All regression tests passed successfully:
+
+1. **Feature #14: Test rules view loads with data** ✅
+   - Logged in and navigated to Test Rules view
+   - Test rules list visible with 4,398 total rules
+   - Pass/fail counts displayed (2,164 passed, 1,016 failed, 49.2% pass rate)
+   - Severity indicators shown (critical badges on rules)
+   - Rule categories displayed ("Other" group with 50 failed rules)
+
+2. **Feature #116: Smooth animations on page transitions** ✅
+   - Navigated: Test Rules → Comparison → Settings → Dashboard
+   - All transitions smooth with fade/slide effects
+   - No jank or blocking during navigation
+   - Content loads quickly after transitions
+
+3. **Feature #109: Export filtered data only** ✅
+   - Applied "Failed" status filter (1,510 records)
+   - Exported to CSV successfully
+   - CSV contains 1,510 rows (all filtered data)
+   - All exported rows have "failed" status verified
+
+### Screenshots Captured
+- regression-session29-testrules.png
+- regression-session29-export.png
+
+---
+
+## Session 28: Regression Testing Verification
+
+### Date: January 21, 2026
+
+---
+
+## PREVIOUS REGRESSION TESTS (Session 28)
 
 All regression tests passed successfully:
 
