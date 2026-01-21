@@ -1,12 +1,54 @@
 # JIVS Migration Visual Companion - Progress Report
 
-## Session 25: Regression Testing Verification
+## Session 26: Regression Testing Verification
 
 ### Date: January 21, 2026
 
 ---
 
 ## REGRESSION TESTS COMPLETED
+
+All regression tests passed successfully:
+
+1. **Feature #49: Logout redirects to login page** ✅
+   - Logged in as Demo User (user@jivs.com)
+   - Clicked user dropdown menu and selected Logout
+   - Successfully redirected to /login page
+   - Attempted to navigate directly to /dashboard
+   - Protected route blocked - redirected back to /login
+   - Authentication properly cleared
+
+2. **Feature #97: Tables scroll horizontally on mobile** ✅
+   - Set viewport to mobile size (375x667)
+   - Navigated to reconciliation dashboard
+   - Table visible with horizontal scrolling enabled
+   - All 6 columns accessible (ID, Source Object, Target Object, Status, Severity, Phase)
+   - Pagination controls functional ("Page 1 of 199")
+   - Mobile layout properly adapted (hamburger menu, stacked stat cards)
+
+3. **Feature #139: Modal close returns to previous state** ✅
+   - Navigated to My Dashboards page
+   - Selected one dashboard (checkbox checked, "1 selected" displayed)
+   - Opened Edit Dashboard modal
+   - Clicked Cancel to close modal without saving
+   - Page state preserved: selection still active, checkbox still checked
+   - No data loss or state reset occurred
+
+### Screenshots Captured
+- regression-session26-logout.png
+- regression-session26-mobile-table.png
+- regression-session26-mobile-end.png
+- regression-session26-modal-close.png
+
+---
+
+## Session 25: Regression Testing Verification
+
+### Date: January 21, 2026
+
+---
+
+## PREVIOUS REGRESSION TESTS (Session 25)
 
 All regression tests passed successfully:
 
