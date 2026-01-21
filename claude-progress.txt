@@ -1,12 +1,51 @@
 # JIVS Migration Visual Companion - Progress Report
 
-## Session 29: Regression Testing Verification
+## Session 30: Regression Testing Verification
 
 ### Date: January 21, 2026
 
 ---
 
 ## REGRESSION TESTS COMPLETED
+
+All regression tests passed successfully:
+
+1. **Feature #2: User login with valid credentials** ✅
+   - Navigated to /login page
+   - Entered admin@jivs.com / admin123
+   - Clicked Sign In button
+   - Successfully redirected to /dashboard
+   - User menu shows "Admin User" (logged-in state)
+   - Dashboard loaded with real data (3,975 records)
+
+2. **Feature #12: Reconciliation table pagination** ✅
+   - Page 1 displayed by default showing records 7952-7971
+   - Clicked 'Next' - went to page 2 with records 7972-7991
+   - URL updated to ?page=2
+   - Clicked 'Previous' - returned to page 1
+   - Original records restored
+   - Page indicator updated correctly ("Page 1 of 199" / "Page 2 of 199")
+
+3. **Feature #4: Password reset request** ✅
+   - Clicked 'Forgot Password' link
+   - Password reset modal appeared
+   - Entered registered email (admin@jivs.com)
+   - Clicked 'Send Reset Link'
+   - Success message: "Check your email - If an account exists with that email, we've sent password reset instructions."
+   - Backend logged the request: POST /api/auth/reset-password
+
+### Screenshots Captured
+- regression-session30-password-reset.png
+
+---
+
+## Session 29: Regression Testing Verification
+
+### Date: January 21, 2026
+
+---
+
+## PREVIOUS REGRESSION TESTS (Session 29)
 
 All regression tests passed successfully:
 
