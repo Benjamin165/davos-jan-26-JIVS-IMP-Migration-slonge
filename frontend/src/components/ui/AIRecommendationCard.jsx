@@ -155,7 +155,7 @@ export default function AIRecommendationCard({ recommendation, onDismiss }) {
             </span>
           </div>
 
-          <h4 className="font-semibold text-white mb-1">{recommendation.title}</h4>
+          <h4 className="font-semibold text-gray-900 dark:text-white mb-1">{recommendation.title}</h4>
           <p className="text-sm text-gray-400 mb-3">{recommendation.description}</p>
 
           <div className="flex items-center gap-3 flex-wrap">
@@ -223,7 +223,7 @@ export function AIRecommendations({ summary, maxRecommendations = 3 }) {
     <div className="space-y-3">
       <div className="flex items-center gap-2 mb-2">
         <Lightbulb className="w-5 h-5 text-yellow-400" />
-        <h3 className="font-semibold text-white">AI Recommendations</h3>
+        <h3 className="font-semibold text-gray-900 dark:text-white">AI Recommendations</h3>
       </div>
       <AnimatePresence mode="popLayout">
         {recommendations.map((rec) => (
