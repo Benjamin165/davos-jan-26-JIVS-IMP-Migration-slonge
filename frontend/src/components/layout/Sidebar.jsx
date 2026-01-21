@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard,
+  Layers,
   ClipboardCheck,
   GitCompare,
   Settings,
@@ -16,6 +17,7 @@ import { cn } from '../../utils/cn'
 
 const navItems = [
   { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { path: '/dashboards', icon: Layers, label: 'My Dashboards' },
   { path: '/test-rules', icon: ClipboardCheck, label: 'Test Rules' },
   { path: '/comparison', icon: GitCompare, label: 'Comparison' },
   { path: '/settings', icon: Settings, label: 'Settings' }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Database,
   CheckCircle,
@@ -12,10 +12,56 @@ import {
   Search,
   ArrowUp,
   ArrowDown,
-  ArrowUpDown
+  ArrowUpDown,
+  X,
+  Clock,
+  FileText,
+  Layers
 } from 'lucide-react'
+import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts'
 import api from '../utils/api'
 import { cn } from '../utils/cn'
+
+// Chart colors
+const COLORS = {
+  completed: '#10B981', // green
+  failed: '#EF4444',    // red
+  running: '#F59E0B',   // yellow/amber
+  pending: '#3B82F6',   // blue
+  warning: '#F97316',   // orange
+  critical: '#EF4444',
+  high: '#F97316',
+  medium: '#F59E0B',
+  low: '#10B981',
+  info: '#3B82F6'
+}
+
+// Custom Tooltip for charts
+function CustomTooltip({ active, payload, label }) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-dark-800 border border-dark-600 rounded-lg p-3 shadow-xl">
+        <p className="text-white font-medium">{label || payload[0].name}</p>
+        <p className="text-gray-400">
+          Count: <span className="text-white font-bold">{payload[0].value?.toLocaleString()}</span>
+        </p>
+      </div>
+    )
+  }
+  return null
+}
 
 // Summary Card Component
 function SummaryCard({ title, value, icon: Icon, trend, color, delay }) {
@@ -111,6 +157,179 @@ function SeverityBadge({ severity }) {
   )
 }
 
+// Detail Side Panel component
+function DetailSidePanel({ record, onClose }) {
+  // Handle Escape key to close panel
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [onClose])
+
+  if (!record) return null
+
+  return (
+    <>
+      {/* Backdrop overlay */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 bg-black/50 z-40"
+      />
+
+      {/* Side panel */}
+      <motion.div
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        className="fixed right-0 top-0 h-full w-full max-w-md bg-dark-800 border-l border-dark-600 shadow-2xl z-50 overflow-y-auto"
+      >
+        {/* Header */}
+        <div className="sticky top-0 bg-dark-800 border-b border-dark-600 p-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Record Details</h2>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-dark-700 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-4 space-y-6">
+          {/* ID and Status */}
+          <div className="flex items-center justify-between">
+            <span className="text-2xl font-bold">#{record.id}</span>
+            <StatusBadge status={record.load_status} />
+          </div>
+
+          {/* Source/Target Info */}
+          <div className="space-y-4">
+            <div className="p-4 rounded-lg bg-dark-700/50">
+              <div className="flex items-center gap-2 text-gray-400 mb-2">
+                <Database className="w-4 h-4" />
+                <span className="text-sm">Source Object</span>
+              </div>
+              <p className="font-mono text-sm break-all">{record.source_object || '-'}</p>
+            </div>
+
+            <div className="p-4 rounded-lg bg-dark-700/50">
+              <div className="flex items-center gap-2 text-gray-400 mb-2">
+                <Layers className="w-4 h-4" />
+                <span className="text-sm">Target Object</span>
+              </div>
+              <p className="font-mono text-sm break-all">{record.target_object || '-'}</p>
+            </div>
+          </div>
+
+          {/* Details Grid */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-3 rounded-lg bg-dark-700/30">
+              <p className="text-xs text-gray-400 mb-1">Severity</p>
+              <SeverityBadge severity={record.severity} />
+            </div>
+            <div className="p-3 rounded-lg bg-dark-700/30">
+              <p className="text-xs text-gray-400 mb-1">Phase</p>
+              <p className="font-medium">{record.phase || '-'}</p>
+            </div>
+            <div className="p-3 rounded-lg bg-dark-700/30">
+              <p className="text-xs text-gray-400 mb-1">Object Type</p>
+              <p className="font-medium">{record.object_type || '-'}</p>
+            </div>
+            <div className="p-3 rounded-lg bg-dark-700/30">
+              <p className="text-xs text-gray-400 mb-1">Mapping Type</p>
+              <p className="font-medium">{record.mapping_type || '-'}</p>
+            </div>
+          </div>
+
+          {/* Row Counts */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-gray-400">Row Counts</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-3 rounded-lg bg-dark-700/30">
+                <p className="text-xs text-gray-400 mb-1">Source Rows</p>
+                <p className="text-xl font-bold">{record.source_row_count?.toLocaleString() || 0}</p>
+              </div>
+              <div className="p-3 rounded-lg bg-dark-700/30">
+                <p className="text-xs text-gray-400 mb-1">Target Rows</p>
+                <p className="text-xl font-bold">{record.target_row_count?.toLocaleString() || 0}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Record Matching */}
+          {(record.matched_records > 0 || record.unmatched_records > 0 || record.duplicate_records > 0) && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-gray-400">Record Matching</h3>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="p-3 rounded-lg bg-green-500/10 text-center">
+                  <p className="text-lg font-bold text-green-400">{record.matched_records || 0}</p>
+                  <p className="text-xs text-gray-400">Matched</p>
+                </div>
+                <div className="p-3 rounded-lg bg-red-500/10 text-center">
+                  <p className="text-lg font-bold text-red-400">{record.unmatched_records || 0}</p>
+                  <p className="text-xs text-gray-400">Unmatched</p>
+                </div>
+                <div className="p-3 rounded-lg bg-yellow-500/10 text-center">
+                  <p className="text-lg font-bold text-yellow-400">{record.duplicate_records || 0}</p>
+                  <p className="text-xs text-gray-400">Duplicates</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Execution Time */}
+          {record.execution_time && (
+            <div className="p-4 rounded-lg bg-dark-700/50">
+              <div className="flex items-center gap-2 text-gray-400 mb-2">
+                <Clock className="w-4 h-4" />
+                <span className="text-sm">Execution Time</span>
+              </div>
+              <p className="font-mono">{record.execution_time.toFixed(2)}s</p>
+            </div>
+          )}
+
+          {/* Error Message */}
+          {record.error_message && (
+            <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30">
+              <div className="flex items-center gap-2 text-red-400 mb-2">
+                <AlertTriangle className="w-4 h-4" />
+                <span className="text-sm font-medium">Error Message</span>
+              </div>
+              <p className="text-sm text-red-300">{record.error_message}</p>
+            </div>
+          )}
+
+          {/* Transformation Rule */}
+          {record.transformation_rule && (
+            <div className="p-4 rounded-lg bg-dark-700/50">
+              <div className="flex items-center gap-2 text-gray-400 mb-2">
+                <FileText className="w-4 h-4" />
+                <span className="text-sm">Transformation Rule</span>
+              </div>
+              <p className="text-sm font-mono break-all">{record.transformation_rule}</p>
+            </div>
+          )}
+
+          {/* Timestamp */}
+          {record.created_at && (
+            <div className="text-xs text-gray-500 text-center pt-4 border-t border-dark-600">
+              Created: {new Date(record.created_at).toLocaleString()}
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </>
+  )
+}
+
 // Sortable column header component
 function SortableHeader({ label, column, currentSort, onSort }) {
   const isActive = currentSort.column === column
@@ -140,7 +359,7 @@ function SortableHeader({ label, column, currentSort, onSort }) {
 }
 
 // Data Table component
-function DataTable({ data, pagination, isLoading, onPageChange, onSearch, onFilterChange, onClearFilters, onSort, filters, searchTerm, sort }) {
+function DataTable({ data, pagination, isLoading, onPageChange, onSearch, onFilterChange, onClearFilters, onSort, onRowClick, filters, searchTerm, sort }) {
   const [searchValue, setSearchValue] = useState(searchTerm || '')
 
   // Sync local search value with parent state
@@ -267,7 +486,11 @@ function DataTable({ data, pagination, isLoading, onPageChange, onSearch, onFilt
           <tbody className="divide-y divide-dark-600">
             {data && data.length > 0 ? (
               data.map((row) => (
-                <tr key={row.id} className="hover:bg-dark-700/30 transition-colors">
+                <tr
+                  key={row.id}
+                  onClick={() => onRowClick && onRowClick(row)}
+                  className="hover:bg-dark-700/30 transition-colors cursor-pointer"
+                >
                   <td className="px-4 py-3 text-sm font-mono">{row.id}</td>
                   <td className="px-4 py-3 text-sm truncate max-w-[200px]" title={row.source_object}>
                     {row.source_object || '-'}
@@ -338,6 +561,7 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState({ status: '', severity: '' })
   const [sort, setSort] = useState({ column: 'id', direction: 'asc' })
+  const [selectedRecord, setSelectedRecord] = useState(null)
 
   const fetchSummary = async () => {
     try {
@@ -409,6 +633,14 @@ export default function Dashboard() {
     setSort(newSort)
     setCurrentPage(1)
     fetchTableData(1, searchTerm, filters, newSort)
+  }
+
+  const handleRowClick = (record) => {
+    setSelectedRecord(record)
+  }
+
+  const handleClosePanel = () => {
+    setSelectedRecord(null)
   }
 
   useEffect(() => {
@@ -483,7 +715,7 @@ export default function Dashboard() {
         ) : null}
       </div>
 
-      {/* Charts placeholder */}
+      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -492,12 +724,42 @@ export default function Dashboard() {
           className="card p-6"
         >
           <h3 className="text-lg font-semibold mb-4">Status Distribution</h3>
-          <div className="h-64 flex items-center justify-center text-gray-400">
+          <div className="h-64">
             {isLoading ? (
-              <div className="animate-pulse">Loading chart...</div>
-            ) : (
-              <p>Chart visualization will be displayed here</p>
-            )}
+              <div className="h-full flex items-center justify-center text-gray-400">
+                <div className="animate-pulse">Loading chart...</div>
+              </div>
+            ) : summary ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={[
+                    { name: 'Completed', value: summary.completed || 0, fill: COLORS.completed },
+                    { name: 'Running', value: summary.running || 0, fill: COLORS.running },
+                    { name: 'Pending', value: summary.pending || 0, fill: COLORS.pending },
+                    { name: 'Failed', value: summary.failed || 0, fill: COLORS.failed },
+                    { name: 'Warning', value: summary.warnings || 0, fill: COLORS.warning }
+                  ]}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="name" tick={{ fill: '#9CA3AF', fontSize: 12 }} />
+                  <YAxis tick={{ fill: '#9CA3AF', fontSize: 12 }} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ color: '#9CA3AF' }} />
+                  <Bar dataKey="value" name="Count" radius={[4, 4, 0, 0]}>
+                    {[
+                      { name: 'Completed', fill: COLORS.completed },
+                      { name: 'Running', fill: COLORS.running },
+                      { name: 'Pending', fill: COLORS.pending },
+                      { name: 'Failed', fill: COLORS.failed },
+                      { name: 'Warning', fill: COLORS.warning }
+                    ].map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : null}
           </div>
         </motion.div>
 
@@ -508,12 +770,42 @@ export default function Dashboard() {
           className="card p-6"
         >
           <h3 className="text-lg font-semibold mb-4">Severity Breakdown</h3>
-          <div className="h-64 flex items-center justify-center text-gray-400">
+          <div className="h-64">
             {isLoading ? (
-              <div className="animate-pulse">Loading chart...</div>
-            ) : (
-              <p>Chart visualization will be displayed here</p>
-            )}
+              <div className="h-full flex items-center justify-center text-gray-400">
+                <div className="animate-pulse">Loading chart...</div>
+              </div>
+            ) : summary ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Completed', value: summary.completed || 0 },
+                      { name: 'Running', value: summary.running || 0 },
+                      { name: 'Pending', value: summary.pending || 0 },
+                      { name: 'Failed', value: summary.failed || 0 },
+                      { name: 'Warning', value: summary.warnings || 0 }
+                    ].filter(item => item.value > 0)}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={80}
+                    paddingAngle={2}
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    labelLine={{ stroke: '#9CA3AF' }}
+                  >
+                    <Cell fill={COLORS.completed} />
+                    <Cell fill={COLORS.running} />
+                    <Cell fill={COLORS.pending} />
+                    <Cell fill={COLORS.failed} />
+                    <Cell fill={COLORS.warning} />
+                  </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ color: '#9CA3AF' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : null}
           </div>
         </motion.div>
       </div>
@@ -562,10 +854,21 @@ export default function Dashboard() {
         onFilterChange={handleFilterChange}
         onClearFilters={handleClearFilters}
         onSort={handleSort}
+        onRowClick={handleRowClick}
         filters={filters}
         searchTerm={searchTerm}
         sort={sort}
       />
+
+      {/* Detail Side Panel */}
+      <AnimatePresence>
+        {selectedRecord && (
+          <DetailSidePanel
+            record={selectedRecord}
+            onClose={handleClosePanel}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

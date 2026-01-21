@@ -115,7 +115,7 @@ router.get('/failures', authenticateToken, (req, res, next) => {
 
     const failures = db.prepare(query).all(...params);
 
-    const { total } = db.prepare('SELECT COUNT(*) as total FROM test_rules_data WHERE status = "fail"').get();
+    const { total } = db.prepare("SELECT COUNT(*) as total FROM test_rules_data WHERE status = 'fail'").get();
 
     res.json({
       failures,
@@ -130,10 +130,10 @@ router.get('/failures', authenticateToken, (req, res, next) => {
 router.get('/summary', authenticateToken, (req, res, next) => {
   try {
     const total = db.prepare('SELECT COUNT(*) as count FROM test_rules_data').get().count;
-    const passed = db.prepare('SELECT COUNT(*) as count FROM test_rules_data WHERE status = "pass"').get().count;
-    const failed = db.prepare('SELECT COUNT(*) as count FROM test_rules_data WHERE status = "fail"').get().count;
-    const warnings = db.prepare('SELECT COUNT(*) as count FROM test_rules_data WHERE status = "warning"').get().count;
-    const pending = db.prepare('SELECT COUNT(*) as count FROM test_rules_data WHERE status = "pending"').get().count;
+    const passed = db.prepare("SELECT COUNT(*) as count FROM test_rules_data WHERE status = 'pass'").get().count;
+    const failed = db.prepare("SELECT COUNT(*) as count FROM test_rules_data WHERE status = 'fail'").get().count;
+    const warnings = db.prepare("SELECT COUNT(*) as count FROM test_rules_data WHERE status = 'warning'").get().count;
+    const pending = db.prepare("SELECT COUNT(*) as count FROM test_rules_data WHERE status = 'pending'").get().count;
 
     // Aggregated counts
     const { total_pass_count } = db.prepare('SELECT SUM(pass_count) as total_pass_count FROM test_rules_data').get();

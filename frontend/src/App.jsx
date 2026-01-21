@@ -11,6 +11,8 @@ import AuthLayout from './components/layout/AuthLayout'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
+import Dashboards from './pages/Dashboards'
+import DashboardView from './pages/DashboardView'
 import TestRules from './pages/TestRules'
 import Comparison from './pages/Comparison'
 import Settings from './pages/Settings'
@@ -107,6 +109,8 @@ function App() {
         }
       >
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboards" element={<Dashboards />} />
+        <Route path="/dashboards/:id" element={<DashboardView />} />
         <Route path="/test-rules" element={<TestRules />} />
         <Route path="/comparison" element={<Comparison />} />
         <Route path="/settings" element={<Settings />} />
