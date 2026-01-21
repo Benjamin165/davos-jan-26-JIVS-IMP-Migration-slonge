@@ -1,12 +1,44 @@
 # JIVS Migration Visual Companion - Progress Report
 
-## Session 20: Regression Testing Verification
+## Session 21: Regression Testing Verification
 
 ### Date: January 21, 2026
 
 ---
 
 ## REGRESSION TESTS COMPLETED
+
+All regression tests passed successfully:
+
+1. **Feature #11: Reconciliation table column sorting** ✅
+   - Navigated to reconciliation dashboard
+   - Clicked Source Object column header - sorted ascending (ADRC first)
+   - Clicked same header again - sorted descending (WYT3 first)
+   - Clicked Status column header - sorting applied to new column (Completed first)
+   - URL updated with sort parameters (?sort_by=source_object&sort_order=desc)
+
+2. **Feature #71: Direct URL access with valid auth** ✅
+   - Opened new browser tab with direct URL to /test-rules
+   - Page loaded correctly while maintaining authentication
+   - Admin User still logged in (visible in header)
+   - Test Rules page displayed with 4,398 total rules and statistics
+
+3. **Feature #90: Success message on create** ✅
+   - Created new dashboard named "Regression Test Dashboard 12345"
+   - Success toast appeared: "Dashboard created successfully!"
+   - Dashboard appeared in the list
+   - Deleted the test dashboard to clean up
+
+### Screenshots Captured
+- regression-session21-test-rules.png
+
+---
+
+## Session 20: Regression Testing Verification
+
+### Date: January 21, 2026
+
+---
 
 All regression tests passed successfully:
 
@@ -25,16 +57,9 @@ All regression tests passed successfully:
    - Only different items shown (since both runs identical, shows "No changes detected between runs")
    - Unchanged items hidden from detailed comparison table
 
-### Screenshots Captured
-- regression-test-dashboard.png
-- regression-feature27-visualization.png
-- regression-feature134-comparison-before.png
-- regression-feature134-comparison-filtered.png
-- regression-feature134-table-filtered.png
-
 ---
 
-## Session 19: Regression Testing Verification (Previous)
+## Session 19: Regression Testing Verification
 
 All regression tests passed successfully:
 
@@ -164,6 +189,7 @@ Default credentials:
 
 | Session | Features Completed | Progress |
 |---------|-------------------|----------|
+| 21 | Regression testing (#11, #71, #90) | 100% (154/154) |
 | 20 | Regression testing (#27, #134) | 100% (154/154) |
 | 19 | Regression testing (#45, #50, #61) | 100% (154/154) |
 | 18 | Regression testing (#114, #20, #34) | 100% (154/154) |
