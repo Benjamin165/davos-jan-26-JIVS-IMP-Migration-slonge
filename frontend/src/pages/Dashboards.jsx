@@ -17,31 +17,114 @@ import { useNavigate } from 'react-router-dom'
 import api from '../utils/api'
 import { cn } from '../utils/cn'
 
+// Unsaved Changes Warning Modal
+function UnsavedChangesModal({ isOpen, onClose, onDiscard, onStay }) {
+  if (!isOpen) return null
+
+  return (
+    <>
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onStay}
+        className="fixed inset-0 bg-black/70 z-[60]"
+      />
+
+      {/* Modal */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-dark-800 rounded-xl border border-dark-600 shadow-2xl z-[60]"
+      >
+        <div className="p-6">
+          <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-warning-500/20">
+            <svg className="w-6 h-6 text-warning-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h2 className="text-lg font-semibold text-center mb-2">Unsaved Changes</h2>
+          <p className="text-gray-400 text-center mb-6">
+            You have unsaved changes. Do you want to discard them?
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={onDiscard}
+              className="flex-1 px-4 py-3 bg-dark-700 hover:bg-dark-600 rounded-lg transition-colors"
+            >
+              Discard
+            </button>
+            <button
+              onClick={onStay}
+              className="flex-1 px-4 py-3 bg-primary-500 hover:bg-primary-600 rounded-lg transition-colors"
+            >
+              Keep Editing
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </>
+  )
+}
+
 // Create/Edit Dashboard Modal
 function DashboardModal({ isOpen, onClose, onSave, dashboard = null }) {
   const [name, setName] = useState(dashboard?.name || '')
   const [isDefault, setIsDefault] = useState(dashboard?.is_default || false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showUnsavedWarning, setShowUnsavedWarning] = useState(false)
+  const [initialName, setInitialName] = useState(dashboard?.name || '')
+  const [initialIsDefault, setInitialIsDefault] = useState(dashboard?.is_default || false)
+
+  // Check if form has unsaved changes
+  const hasUnsavedChanges = name !== initialName || isDefault !== initialIsDefault
 
   useEffect(() => {
     if (isOpen) {
-      setName(dashboard?.name || '')
-      setIsDefault(dashboard?.is_default || false)
+      const nameProp = dashboard?.name || ''
+      const defaultProp = dashboard?.is_default || false
+      setName(nameProp)
+      setIsDefault(defaultProp)
+      setInitialName(nameProp)
+      setInitialIsDefault(defaultProp)
       setError('')
+      setShowUnsavedWarning(false)
     }
   }, [isOpen, dashboard])
+
+  // Handle close with unsaved changes check
+  const handleCloseAttempt = () => {
+    if (hasUnsavedChanges) {
+      setShowUnsavedWarning(true)
+    } else {
+      onClose()
+    }
+  }
+
+  // Handle discard changes
+  const handleDiscard = () => {
+    setShowUnsavedWarning(false)
+    onClose()
+  }
+
+  // Handle stay and keep editing
+  const handleStay = () => {
+    setShowUnsavedWarning(false)
+  }
 
   // Handle Escape key to close modal
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose()
+      if (e.key === 'Escape' && isOpen && !showUnsavedWarning) {
+        handleCloseAttempt()
       }
     }
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [isOpen, onClose])
+  }, [isOpen, hasUnsavedChanges, showUnsavedWarning])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -72,7 +155,7 @@ function DashboardModal({ isOpen, onClose, onSave, dashboard = null }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={onClose}
+        onClick={handleCloseAttempt}
         className="fixed inset-0 bg-black/50 z-50"
       />
 
@@ -88,7 +171,7 @@ function DashboardModal({ isOpen, onClose, onSave, dashboard = null }) {
             {dashboard ? 'Edit Dashboard' : 'Create New Dashboard'}
           </h2>
           <button
-            onClick={onClose}
+            onClick={handleCloseAttempt}
             className="p-2 rounded-lg hover:bg-dark-700 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -133,7 +216,7 @@ function DashboardModal({ isOpen, onClose, onSave, dashboard = null }) {
           <div className="flex gap-3 pt-4">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleCloseAttempt}
               className="flex-1 px-4 py-3 bg-dark-700 hover:bg-dark-600 rounded-lg transition-colors"
             >
               Cancel
@@ -148,6 +231,18 @@ function DashboardModal({ isOpen, onClose, onSave, dashboard = null }) {
           </div>
         </form>
       </motion.div>
+
+      {/* Unsaved Changes Warning */}
+      <AnimatePresence>
+        {showUnsavedWarning && (
+          <UnsavedChangesModal
+            isOpen={showUnsavedWarning}
+            onClose={handleStay}
+            onDiscard={handleDiscard}
+            onStay={handleStay}
+          />
+        )}
+      </AnimatePresence>
     </>
   )
 }
