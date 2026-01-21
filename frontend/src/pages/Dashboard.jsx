@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Database,
@@ -605,21 +606,43 @@ function DataTable({ data, pagination, isLoading, onPageChange, onSearch, onFilt
 }
 
 export default function Dashboard() {
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  // Initialize state from URL params
+  const initialStatus = searchParams.get('status') || ''
+  const initialSeverity = searchParams.get('severity') || ''
+  const initialSearch = searchParams.get('search') || ''
+  const initialPage = parseInt(searchParams.get('page')) || 1
+  const initialSortBy = searchParams.get('sort_by') || 'id'
+  const initialSortOrder = searchParams.get('sort_order') || 'asc'
+
   const [summary, setSummary] = useState(null)
   const [tableData, setTableData] = useState([])
   const [pagination, setPagination] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [tableLoading, setTableLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filters, setFilters] = useState({ status: '', severity: '' })
-  const [sort, setSort] = useState({ column: 'id', direction: 'asc' })
+  const [currentPage, setCurrentPage] = useState(initialPage)
+  const [searchTerm, setSearchTerm] = useState(initialSearch)
+  const [filters, setFilters] = useState({ status: initialStatus, severity: initialSeverity })
+  const [sort, setSort] = useState({ column: initialSortBy, direction: initialSortOrder })
   const [selectedRecord, setSelectedRecord] = useState(null)
   const [relatedRecords, setRelatedRecords] = useState([])
   const [navigationHistory, setNavigationHistory] = useState([])
   const [showExportMenu, setShowExportMenu] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
+
+  // Update URL when filters/search/page/sort change
+  const updateUrlParams = useCallback((newFilters, newSearch, newPage, newSort) => {
+    const params = new URLSearchParams()
+    if (newFilters.status) params.set('status', newFilters.status)
+    if (newFilters.severity) params.set('severity', newFilters.severity)
+    if (newSearch) params.set('search', newSearch)
+    if (newPage > 1) params.set('page', newPage.toString())
+    if (newSort.column !== 'id') params.set('sort_by', newSort.column)
+    if (newSort.direction !== 'asc') params.set('sort_order', newSort.direction)
+    setSearchParams(params, { replace: true })
+  }, [setSearchParams])
 
   const handleExport = async (format) => {
     setIsExporting(true)
@@ -702,12 +725,14 @@ export default function Dashboard() {
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage)
     fetchTableData(newPage, searchTerm, filters, sort)
+    updateUrlParams(filters, searchTerm, newPage, sort)
   }
 
   const handleSearch = (search) => {
     setSearchTerm(search)
     setCurrentPage(1)
     fetchTableData(1, search, filters, sort)
+    updateUrlParams(filters, search, 1, sort)
   }
 
   const handleFilterChange = (filterName, value) => {
@@ -715,6 +740,7 @@ export default function Dashboard() {
     setFilters(newFilters)
     setCurrentPage(1)
     fetchTableData(1, searchTerm, newFilters, sort)
+    updateUrlParams(newFilters, searchTerm, 1, sort)
   }
 
   const handleClearFilters = () => {
@@ -725,6 +751,7 @@ export default function Dashboard() {
     setSort(defaultSort)
     setCurrentPage(1)
     fetchTableData(1, '', clearedFilters, defaultSort)
+    updateUrlParams(clearedFilters, '', 1, defaultSort)
   }
 
   const handleSort = (column) => {
@@ -733,6 +760,7 @@ export default function Dashboard() {
     setSort(newSort)
     setCurrentPage(1)
     fetchTableData(1, searchTerm, filters, newSort)
+    updateUrlParams(filters, searchTerm, 1, newSort)
   }
 
   const fetchRelatedRecords = async (sourceObject, currentId) => {
