@@ -16,7 +16,10 @@ import {
   X,
   Clock,
   FileText,
-  Layers
+  Layers,
+  Download,
+  FileSpreadsheet,
+  FileJson
 } from 'lucide-react'
 import {
   BarChart,
@@ -562,6 +565,50 @@ export default function Dashboard() {
   const [filters, setFilters] = useState({ status: '', severity: '' })
   const [sort, setSort] = useState({ column: 'id', direction: 'asc' })
   const [selectedRecord, setSelectedRecord] = useState(null)
+  const [showExportMenu, setShowExportMenu] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
+
+  const handleExport = async (format) => {
+    setIsExporting(true)
+    setShowExportMenu(false)
+    try {
+      const response = await api.post(`/exports/${format}`, {
+        data_type: 'reconciliation',
+        filters: {
+          status: filters.status || undefined,
+          severity: filters.severity || undefined
+        },
+        title: 'Migration Reconciliation Report'
+      }, {
+        responseType: format === 'pdf' ? 'text' : 'blob'
+      })
+
+      if (format === 'pdf') {
+        // Open HTML in new window for printing as PDF
+        const printWindow = window.open('', '_blank')
+        printWindow.document.write(response.data)
+        printWindow.document.close()
+        printWindow.print()
+      } else {
+        // Download file
+        const blob = new Blob([response.data], {
+          type: format === 'csv' ? 'text/csv' : 'application/json'
+        })
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `reconciliation_export_${Date.now()}.${format}`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+      }
+    } catch (err) {
+      console.error('Export failed:', err)
+    } finally {
+      setIsExporting(false)
+    }
+  }
 
   const fetchSummary = async () => {
     try {
@@ -655,14 +702,62 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <p className="text-gray-400">Migration reconciliation overview</p>
         </div>
-        <button
-          onClick={fetchData}
-          disabled={isLoading}
-          className="btn-secondary px-4 py-2"
-        >
-          <RefreshCw className={cn('w-4 h-4 mr-2', isLoading && 'animate-spin')} />
-          Refresh
-        </button>
+        <div className="flex gap-3">
+          {/* Export Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setShowExportMenu(!showExportMenu)}
+              disabled={isExporting}
+              className="btn-secondary px-4 py-2"
+            >
+              <Download className={cn('w-4 h-4 mr-2', isExporting && 'animate-pulse')} />
+              Export
+            </button>
+            <AnimatePresence>
+              {showExportMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute right-0 mt-2 w-48 bg-dark-800 border border-dark-600 rounded-lg shadow-xl z-50"
+                >
+                  <div className="py-1">
+                    <button
+                      onClick={() => handleExport('pdf')}
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-dark-700 flex items-center gap-2"
+                    >
+                      <FileText className="w-4 h-4 text-red-400" />
+                      Export as PDF
+                    </button>
+                    <button
+                      onClick={() => handleExport('csv')}
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-dark-700 flex items-center gap-2"
+                    >
+                      <FileSpreadsheet className="w-4 h-4 text-green-400" />
+                      Export as CSV
+                    </button>
+                    <button
+                      onClick={() => handleExport('json')}
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-dark-700 flex items-center gap-2"
+                    >
+                      <FileJson className="w-4 h-4 text-blue-400" />
+                      Export as JSON
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <button
+            onClick={fetchData}
+            disabled={isLoading}
+            className="btn-secondary px-4 py-2"
+          >
+            <RefreshCw className={cn('w-4 h-4 mr-2', isLoading && 'animate-spin')} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       {error && (

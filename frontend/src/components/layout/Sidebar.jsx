@@ -10,7 +10,8 @@ import {
   Users,
   Menu,
   X,
-  Database
+  Database,
+  BarChart3
 } from 'lucide-react'
 import { useAuthStore } from '../../context/authStore'
 import { cn } from '../../utils/cn'
@@ -18,6 +19,7 @@ import { cn } from '../../utils/cn'
 const navItems = [
   { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/dashboards', icon: Layers, label: 'My Dashboards' },
+  { path: '/visualizations', icon: BarChart3, label: 'Visualizations' },
   { path: '/test-rules', icon: ClipboardCheck, label: 'Test Rules' },
   { path: '/comparison', icon: GitCompare, label: 'Comparison' },
   { path: '/settings', icon: Settings, label: 'Settings' }
