@@ -1,12 +1,53 @@
 # JIVS Migration Visual Companion - Progress Report
 
-## Session 24: Regression Testing Verification
+## Session 25: Regression Testing Verification
 
 ### Date: January 21, 2026
 
 ---
 
 ## REGRESSION TESTS COMPLETED
+
+All regression tests passed successfully:
+
+1. **Feature #115: Light mode styling correct** ✅
+   - Switched to light mode using theme toggle button
+   - Verified light background applied throughout the app
+   - Text is dark and readable on all components
+   - Dashboard cards have appropriate light theme styling with colored indicators
+   - Data table has good contrast with proper text visibility
+   - AI Recommendations section properly styled
+
+2. **Feature #105: Date sorting works correctly** ✅
+   - Navigated to reconciliation dashboard data table
+   - Clicked ID column header - sorted descending (11926, 11925, 11924...)
+   - URL updated to ?sort_order=desc
+   - Clicked ID header again - sorted ascending (7952, 7953, 7954...)
+   - IDs (chronological identifiers) sorted correctly in both directions
+
+3. **Feature #44: Cannot access other user's data via URL manipulation** ✅
+   - Logged in as Admin, navigated to dashboard ID 10 (Admin Overview)
+   - Logged out and logged in as Demo User (user@jivs.com)
+   - Attempted to access /dashboards/10 directly via URL
+   - Server returned 403 Forbidden (visible in console)
+   - "Failed to load dashboard" error displayed to user
+   - Admin's dashboard content NOT visible to Demo User
+   - Security properly enforced
+
+### Screenshots Captured
+- regression-session25-lightmode.png
+- regression-session25-lightmode-table.png
+- regression-session25-security-403.png
+
+---
+
+## Session 24: Regression Testing Verification
+
+### Date: January 21, 2026
+
+---
+
+## PREVIOUS REGRESSION TESTS (Session 24)
 
 All regression tests passed successfully:
 
@@ -32,9 +73,6 @@ All regression tests passed successfully:
    - Verified filtered results (72 records matching "MARA")
    - Cleared search using "Clear filters" button
    - Verified all 3,975 records shown again
-
-### Screenshots Captured
-- regression-session24-dashboard.png
 
 ---
 
