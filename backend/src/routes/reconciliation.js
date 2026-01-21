@@ -92,11 +92,11 @@ router.get('/', authenticateToken, (req, res, next) => {
 router.get('/summary', authenticateToken, (req, res, next) => {
   try {
     const total = db.prepare('SELECT COUNT(*) as count FROM reconciliation_data').get().count;
-    const completed = db.prepare('SELECT COUNT(*) as count FROM reconciliation_data WHERE load_status = "completed"').get().count;
-    const failed = db.prepare('SELECT COUNT(*) as count FROM reconciliation_data WHERE load_status = "failed"').get().count;
-    const running = db.prepare('SELECT COUNT(*) as count FROM reconciliation_data WHERE load_status = "running"').get().count;
-    const pending = db.prepare('SELECT COUNT(*) as count FROM reconciliation_data WHERE load_status = "pending"').get().count;
-    const warnings = db.prepare('SELECT COUNT(*) as count FROM reconciliation_data WHERE load_status = "warning"').get().count;
+    const completed = db.prepare("SELECT COUNT(*) as count FROM reconciliation_data WHERE load_status = 'completed'").get().count;
+    const failed = db.prepare("SELECT COUNT(*) as count FROM reconciliation_data WHERE load_status = 'failed'").get().count;
+    const running = db.prepare("SELECT COUNT(*) as count FROM reconciliation_data WHERE load_status = 'running'").get().count;
+    const pending = db.prepare("SELECT COUNT(*) as count FROM reconciliation_data WHERE load_status = 'pending'").get().count;
+    const warnings = db.prepare("SELECT COUNT(*) as count FROM reconciliation_data WHERE load_status = 'warning'").get().count;
 
     const successRate = total > 0 ? ((completed / total) * 100).toFixed(1) : 0;
 

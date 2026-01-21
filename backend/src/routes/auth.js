@@ -108,7 +108,7 @@ router.post('/login', async (req, res, next) => {
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
     // Clean up old sessions for this user
-    db.prepare('DELETE FROM user_sessions WHERE user_id = ? AND expires_at < datetime("now")').run(user.id);
+    db.prepare("DELETE FROM user_sessions WHERE user_id = ? AND expires_at < datetime('now')").run(user.id);
 
     db.prepare(`
       INSERT INTO user_sessions (user_id, token, expires_at)

@@ -1,0 +1,581 @@
+<project_specification>
+  <project_name>Hackathon-Jan26 1-jivs-imp-migration</project_name>
+
+  <overview>
+    A visual companion application for JIVS IMP Migration that transforms complex matrix/Excel data into intuitive, beautiful dashboards. The app helps less-experienced users and junior consultants understand migration status, results, and data through modern visualizations, prompt-based custom charts, and beginner-friendly UX with a "wow factor" inspired by 21st.dev aesthetics.
+  </overview>
+
+  <technology_stack>
+    <frontend>
+      <framework>React</framework>
+      <styling>Tailwind CSS with modern animation libraries (Framer Motion)</styling>
+      <charts>Recharts or Chart.js for data visualization</charts>
+      <ui_components>Shadcn/ui or similar modern component library</ui_components>
+      <state_management>React Context + hooks or Zustand</state_management>
+    </frontend>
+    <backend>
+      <runtime>Node.js with Express</runtime>
+      <database>SQLite</database>
+      <authentication>JWT-based authentication</authentication>
+    </backend>
+    <communication>
+      <api>REST API</api>
+      <realtime>Server-Sent Events (SSE) for simulated real-time updates</realtime>
+    </communication>
+  </technology_stack>
+
+  <prerequisites>
+    <environment_setup>
+      Node.js 18+ installed
+      npm or yarn package manager
+      Mock data files (challenge-1-recon-data.xlsx, challenge-1-testrule-data.xlsx)
+    </environment_setup>
+  </prerequisites>
+
+  <feature_count>127</feature_count>
+
+  <security_and_access_control>
+    <user_roles>
+      <role name="user">
+        <permissions>
+          - Can view all dashboards
+          - Can create and manage own custom dashboards
+          - Can create and save custom visualizations
+          - Can export data (PDF, CSV, JSON)
+          - Can configure personal settings (theme, notifications)
+          - Cannot access other users' private dashboards
+          - Cannot modify system templates
+        </permissions>
+        <protected_routes>
+          - /dashboard/* (authenticated users)
+          - /settings (authenticated users)
+          - /exports (authenticated users)
+        </protected_routes>
+      </role>
+      <role name="admin">
+        <permissions>
+          - All user permissions
+          - Can manage all users
+          - Can create system-wide templates
+          - Can view all dashboards including private ones
+          - Can configure system settings
+        </permissions>
+        <protected_routes>
+          - /admin/* (admin only)
+        </protected_routes>
+      </role>
+    </user_roles>
+    <authentication>
+      <method>email/password</method>
+      <session_timeout>24 hours</session_timeout>
+      <password_requirements>Minimum 8 characters</password_requirements>
+    </authentication>
+    <sensitive_operations>
+      - Delete account requires password confirmation
+      - Delete dashboard requires confirmation dialog
+    </sensitive_operations>
+  </security_and_access_control>
+
+  <core_features>
+    <user_accounts>
+      - User registration with email/password
+      - User login/logout
+      - Password reset functionality
+      - User profile management
+      - Personal settings (theme preference, notification settings)
+      - Session management
+    </user_accounts>
+
+    <reconciliation_dashboard>
+      - Summary cards showing total objects, success rate, failed items, warnings
+      - Visual charts showing status distribution (planned/running/completed/failed)
+      - Filterable and sortable data table with 3,976 rows of reconciliation data
+      - Filter by object type, status, severity, phase
+      - Search functionality across all reconciliation data
+      - Column sorting and pagination
+      - Real-time feel with simulated updates and progress animations
+      - Refresh indicators and loading states
+    </reconciliation_dashboard>
+
+    <test_rules_view>
+      - Problem-first display (failures prominent, successes collapsed)
+      - 4,399 rows of test rule validation results
+      - Grouping by rule type (NOT NULL checks, format validations)
+      - Severity indicators and visual cues
+      - Expandable/collapsible sections
+      - Pass/fail statistics per rule category
+      - Quick filters for failed rules only
+    </test_rules_view>
+
+    <multiple_dashboards>
+      - Create new dashboard views
+      - Rename existing dashboards
+      - Delete dashboards (with confirmation)
+      - Duplicate dashboards
+      - Switch between dashboards
+      - Set default dashboard
+      - Widget-based customization (add/remove/rearrange)
+      - Save dashboard layouts
+    </multiple_dashboards>
+
+    <drill_down_side_panel>
+      - Slide-out panel for details without leaving page
+      - Navigation within panel to related items
+      - Quick actions from detail view
+      - Close panel to return to main view
+      - Keyboard shortcuts (Escape to close)
+    </drill_down_side_panel>
+
+    <prompt_based_visuals>
+      - Pre-built visualization templates
+      - Natural language input for customization ("show me failures by object type as a pie chart")
+      - Chart type selection (bar, line, pie, area, etc.)
+      - Data field mapping
+      - Filter configuration per visualization
+      - Save custom visualizations as templates
+      - Edit and delete saved templates
+      - Template library with categories
+    </prompt_based_visuals>
+
+    <comparison_views>
+      - Select two runs for comparison
+      - Side-by-side display of run results
+      - Diff highlighting (green for improved, red for regressed)
+      - Summary of changes between runs
+      - Filter to show only changed items
+      - Export comparison report
+    </comparison_views>
+
+    <notifications_alerts>
+      - In-app notification bell with notification list
+      - Alert banners for critical failures
+      - Browser push notifications
+      - Notification settings (enable/disable types)
+      - Mark notifications as read
+      - Clear all notifications
+      - Alert history
+    </notifications_alerts>
+
+    <exports>
+      - Export to PDF (formatted reports)
+      - Export to CSV (raw data)
+      - Export to JSON (structured data)
+      - Export options (select columns, filters)
+      - Export current view or full dataset
+      - Download progress indicator
+    </exports>
+
+    <beginner_support>
+      - Contextual tooltips on all major elements
+      - Help panel with explanations of migration concepts
+      - Skippable guided tour for first-time users
+      - Resume tour from any point
+      - Visual cues instead of technical codes
+      - Clear labels and explanations throughout
+      - "What does this mean?" info icons
+    </beginner_support>
+
+    <theming_design>
+      - Dark mode / Light mode toggle
+      - Theme preference persistence
+      - OCC-inspired design language
+      - Smooth animations and transitions (21st.dev inspired)
+      - Beautiful charts with modern styling
+      - Sleek, polished component design
+      - Responsive glassmorphism effects where appropriate
+    </theming_design>
+
+    <ai_hints_nice_to_have>
+      - Basic AI-powered recommendations
+      - Suggestions for reducing errors based on data patterns
+      - Dismissible hint cards
+      - "Why am I seeing this?" explanations
+    </ai_hints_nice_to_have>
+  </core_features>
+
+  <database_schema>
+    <tables>
+      <users>
+        - id (PRIMARY KEY)
+        - email (UNIQUE)
+        - password_hash
+        - name
+        - role (user/admin)
+        - theme_preference (dark/light)
+        - notification_settings (JSON)
+        - created_at
+        - updated_at
+      </users>
+
+      <dashboards>
+        - id (PRIMARY KEY)
+        - user_id (FOREIGN KEY)
+        - name
+        - is_default (BOOLEAN)
+        - layout (JSON - widget positions and sizes)
+        - created_at
+        - updated_at
+      </dashboards>
+
+      <visualizations>
+        - id (PRIMARY KEY)
+        - user_id (FOREIGN KEY)
+        - dashboard_id (FOREIGN KEY, nullable)
+        - name
+        - type (bar/line/pie/area/table)
+        - config (JSON - data mapping, filters, styling)
+        - is_template (BOOLEAN)
+        - created_at
+        - updated_at
+      </visualizations>
+
+      <reconciliation_data>
+        - id (PRIMARY KEY)
+        - source_object
+        - target_object
+        - source_row_count
+        - target_row_count
+        - transformation_rule
+        - load_status
+        - phase
+        - severity
+        - error_message
+        - execution_time
+        - created_at
+        - (27 fields total from mock data)
+      </reconciliation_data>
+
+      <test_rules_data>
+        - id (PRIMARY KEY)
+        - test_rule_name
+        - sql_condition
+        - pass_count
+        - fail_count
+        - total_count
+        - status
+        - rule_type
+        - severity
+        - object_name
+        - created_at
+        - (12 fields total from mock data)
+      </test_rules_data>
+
+      <migration_runs>
+        - id (PRIMARY KEY)
+        - name
+        - started_at
+        - completed_at
+        - status
+        - total_objects
+        - successful_objects
+        - failed_objects
+      </migration_runs>
+
+      <notifications>
+        - id (PRIMARY KEY)
+        - user_id (FOREIGN KEY)
+        - type (alert/warning/info/success)
+        - title
+        - message
+        - is_read (BOOLEAN)
+        - created_at
+      </notifications>
+
+      <user_sessions>
+        - id (PRIMARY KEY)
+        - user_id (FOREIGN KEY)
+        - token
+        - expires_at
+        - created_at
+      </user_sessions>
+    </tables>
+  </database_schema>
+
+  <api_endpoints_summary>
+    <authentication>
+      - POST /api/auth/register
+      - POST /api/auth/login
+      - POST /api/auth/logout
+      - POST /api/auth/reset-password
+      - GET /api/auth/me
+    </authentication>
+
+    <users>
+      - GET /api/users (admin only)
+      - GET /api/users/:id
+      - PUT /api/users/:id
+      - DELETE /api/users/:id
+    </users>
+
+    <dashboards>
+      - GET /api/dashboards
+      - GET /api/dashboards/:id
+      - POST /api/dashboards
+      - PUT /api/dashboards/:id
+      - DELETE /api/dashboards/:id
+      - PUT /api/dashboards/:id/default
+    </dashboards>
+
+    <visualizations>
+      - GET /api/visualizations
+      - GET /api/visualizations/:id
+      - POST /api/visualizations
+      - PUT /api/visualizations/:id
+      - DELETE /api/visualizations/:id
+      - GET /api/visualizations/templates
+    </visualizations>
+
+    <reconciliation>
+      - GET /api/reconciliation
+      - GET /api/reconciliation/:id
+      - GET /api/reconciliation/summary
+      - GET /api/reconciliation/stats
+    </reconciliation>
+
+    <test_rules>
+      - GET /api/test-rules
+      - GET /api/test-rules/:id
+      - GET /api/test-rules/summary
+      - GET /api/test-rules/failures
+    </test_rules>
+
+    <comparison>
+      - GET /api/runs
+      - GET /api/runs/:id
+      - GET /api/runs/compare/:id1/:id2
+    </comparison>
+
+    <notifications>
+      - GET /api/notifications
+      - PUT /api/notifications/:id/read
+      - PUT /api/notifications/read-all
+      - DELETE /api/notifications/:id
+    </notifications>
+
+    <exports>
+      - POST /api/exports/pdf
+      - POST /api/exports/csv
+      - POST /api/exports/json
+    </exports>
+
+    <ai_hints>
+      - GET /api/ai/recommendations
+      - POST /api/ai/generate-visual
+    </ai_hints>
+  </api_endpoints_summary>
+
+  <ui_layout>
+    <main_structure>
+      - Left sidebar: Navigation menu with dashboard links, settings
+      - Top header: Logo, search, notifications bell, user menu, theme toggle
+      - Main content area: Dashboard with widgets
+      - Right slide-out panel: Detail views when drilling down
+    </main_structure>
+
+    <key_pages>
+      - Login / Register pages
+      - Main Dashboard (Reconciliation overview)
+      - Test Rules View
+      - Custom Dashboard Builder
+      - Comparison View
+      - Settings page
+      - Help / Tour page
+      - Admin panel (user management)
+    </key_pages>
+
+    <responsive_behavior>
+      - Desktop: Full sidebar visible, multi-column layouts
+      - Tablet: Collapsible sidebar, 2-column layouts
+      - Mobile: Hidden sidebar (hamburger menu), single column
+    </responsive_behavior>
+  </ui_layout>
+
+  <design_system>
+    <color_palette>
+      - Primary: Modern blue (#3B82F6) aligned with OCC
+      - Success: Green (#10B981)
+      - Warning: Amber (#F59E0B)
+      - Error: Red (#EF4444)
+      - Dark mode: Deep slate backgrounds (#0F172A, #1E293B)
+      - Light mode: Clean whites and grays
+    </color_palette>
+
+    <typography>
+      - Font family: Inter or similar modern sans-serif
+      - Clear hierarchy with distinct heading sizes
+      - Readable body text (16px base)
+    </typography>
+
+    <wow_factor_elements>
+      - Smooth page transitions (Framer Motion)
+      - Animated chart entries
+      - Glassmorphism effects on cards
+      - Subtle hover animations
+      - Loading skeletons instead of spinners
+      - Micro-interactions on buttons and toggles
+      - Gradient accents
+      - Blur effects on overlays
+    </wow_factor_elements>
+  </design_system>
+
+  <implementation_steps>
+    <step number="1">
+      <title>Project Setup & Foundation</title>
+      <tasks>
+        - Initialize React frontend with Vite
+        - Set up Node.js/Express backend
+        - Configure SQLite database
+        - Set up Tailwind CSS and animation libraries
+        - Create basic project structure
+        - Import and parse mock data (Excel files)
+      </tasks>
+    </step>
+
+    <step number="2">
+      <title>Authentication & User Management</title>
+      <tasks>
+        - Implement user registration and login
+        - Set up JWT authentication
+        - Create user profile and settings pages
+        - Implement theme toggle (dark/light)
+      </tasks>
+    </step>
+
+    <step number="3">
+      <title>Core Dashboard & Data Display</title>
+      <tasks>
+        - Build main dashboard layout (OCC-inspired)
+        - Create summary cards component
+        - Implement reconciliation data table
+        - Add charts for status distribution
+        - Build filtering and search functionality
+      </tasks>
+    </step>
+
+    <step number="4">
+      <title>Test Rules View</title>
+      <tasks>
+        - Create problem-first test rules display
+        - Implement expandable/collapsible sections
+        - Add severity indicators and grouping
+        - Build pass/fail statistics display
+      </tasks>
+    </step>
+
+    <step number="5">
+      <title>Drill-Down & Details</title>
+      <tasks>
+        - Build slide-out side panel component
+        - Implement detail views for reconciliation items
+        - Implement detail views for test rules
+        - Add navigation within panel
+      </tasks>
+    </step>
+
+    <step number="6">
+      <title>Multiple Dashboards & Customization</title>
+      <tasks>
+        - Implement dashboard CRUD operations
+        - Build widget-based layout system
+        - Create dashboard switching functionality
+        - Add save/load dashboard layouts
+      </tasks>
+    </step>
+
+    <step number="7">
+      <title>Prompt-Based Visuals</title>
+      <tasks>
+        - Create visualization template library
+        - Build visual chart builder interface
+        - Implement natural language input for chart customization
+        - Add save/edit template functionality
+      </tasks>
+    </step>
+
+    <step number="8">
+      <title>Comparison & Advanced Features</title>
+      <tasks>
+        - Build run comparison view
+        - Implement diff highlighting
+        - Add notifications system
+        - Build export functionality (PDF, CSV, JSON)
+      </tasks>
+    </step>
+
+    <step number="9">
+      <title>Beginner Support & Polish</title>
+      <tasks>
+        - Add tooltips throughout the app
+        - Create help panel with migration concepts
+        - Build skippable guided tour
+        - Add wow-factor animations and transitions
+        - Final UI polish and responsiveness
+      </tasks>
+    </step>
+
+    <step number="10">
+      <title>AI Features (Nice-to-Have)</title>
+      <tasks>
+        - Basic AI recommendation engine
+        - Suggestion cards for error reduction
+        - Visual generation hints
+      </tasks>
+    </step>
+  </implementation_steps>
+
+  <success_criteria>
+    <functionality>
+      - All core features working with provided mock data
+      - User can create account, login, and personalize experience
+      - Dashboard displays reconciliation data with filtering/sorting
+      - Test rules view shows failures prominently
+      - Drill-down works via side panel
+      - Multiple dashboards can be created and customized
+      - Prompt-based visuals work with templates and natural language
+      - Comparison view shows diff between runs
+      - Exports work (PDF, CSV, JSON)
+    </functionality>
+
+    <user_experience>
+      - Junior consultant can understand migration status in first hour
+      - Guided tour explains key concepts
+      - Tooltips provide context everywhere
+      - Clear visual cues replace technical codes
+    </user_experience>
+
+    <technical_quality>
+      - No console errors during normal operation
+      - Pages load in under 3 seconds
+      - Responsive on desktop, tablet, and mobile
+      - Data persists correctly across sessions
+    </technical_quality>
+
+    <design_polish>
+      - "Wow factor" UI inspired by 21st.dev
+      - Smooth animations and transitions
+      - Beautiful, modern charts
+      - OCC-inspired layout and styling
+      - Polished enough to demo to hackathon judges
+    </design_polish>
+  </success_criteria>
+
+  <mock_data_notes>
+    <reconciliation_data>
+      - File: challenge-1-recon-data.xlsx
+      - 3,976 rows of migration reconciliation information
+      - 27 fields including: source/target objects, row counts, transformation rules, load status
+      - Sample objects: ANAMBANK, ANACUSTOMER, BATCHES, etc.
+    </reconciliation_data>
+
+    <test_rules_data>
+      - File: challenge-1-testrule-data.xlsx
+      - 4,399 rows of test rule validation results
+      - 12 fields including: test rule name, SQL conditions, pass/fail counts
+      - Validates field-level data quality (NOT NULL checks, format validation)
+    </test_rules_data>
+
+    <note>
+      It is explicitly allowed to change/add/manipulate/enhance the mock data for demonstration purposes.
+    </note>
+  </mock_data_notes>
+</project_specification>
