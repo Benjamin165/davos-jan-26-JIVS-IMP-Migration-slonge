@@ -2,6 +2,11 @@
 
 A visual companion application for JIVS IMP Migration that transforms complex matrix/Excel data into intuitive, beautiful dashboards. The app helps less-experienced users and junior consultants understand migration status, results, and data through modern visualizations.
 
+## Links
+
+- **GitHub Repository**: https://github.com/Benjamin165/davos-jan-26-JIVS-IMP-Migration-slonge
+- **Project Board**: https://github.com/users/Benjamin165/projects/3/views/1
+
 ## Features
 
 - **Reconciliation Dashboard**: Summary cards, status charts, filterable data tables with 3,976 rows
