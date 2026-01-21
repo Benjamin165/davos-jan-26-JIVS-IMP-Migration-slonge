@@ -1,12 +1,50 @@
 # JIVS Migration Visual Companion - Progress Report
 
-## Session 35: Regression Testing Verification
+## Session 36: Regression Testing Verification
 
 ### Date: January 21, 2026
 
 ---
 
 ## REGRESSION TESTS COMPLETED
+
+All regression tests passed successfully:
+
+1. **Feature #13: Status distribution chart displays** ✅
+   - Navigated to main dashboard
+   - Status Distribution bar chart visible (Completed, Running, Pending, Failed, Warning)
+   - Severity Breakdown pie chart showing percentages (Completed 2%, Pending 19%, Failed 38%, Warning 41%)
+   - Chart legends visible
+   - Chart values match Quick Stats (747 Pending, 0 Running, 72 Completed, 1510 Failed, 1646 Warnings)
+
+2. **Feature #29: Export to PDF** ✅
+   - Clicked Export button - dropdown appeared with PDF, CSV, JSON options
+   - Clicked "Export as PDF"
+   - Network request confirmed: `[POST] /api/exports/pdf => [200] OK`
+   - PDF report generated successfully (new tab opened with title "Migration Reconciliation Report")
+
+3. **Feature #23: Switch between dashboards** ✅
+   - Navigated to My Dashboards - 3 dashboards visible
+   - Viewed Admin Overview (ID #10) - loaded correctly with all charts
+   - Navigated back and viewed Timestamp Test Dashboard (ID #17) - loaded correctly
+   - Switched back to Admin Overview (ID #10) - loaded correctly
+   - Dashboard switching working end-to-end
+
+### Screenshots Captured
+- regression-session36-dashboard.png
+- regression-session36-charts.png
+- regression-session36-dashboards-list.png
+- regression-session36-dashboard-switch.png
+
+---
+
+## Session 35: Regression Testing Verification
+
+### Date: January 21, 2026
+
+---
+
+## PREVIOUS REGRESSION TESTS (Session 35)
 
 All regression tests passed successfully:
 
