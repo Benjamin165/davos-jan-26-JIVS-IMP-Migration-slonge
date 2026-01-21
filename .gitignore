@@ -22,12 +22,6 @@ backend/data/*.sqlite
 *.sqlite
 !features.db
 
-# SQLite temporary files
-*.sqlite-shm
-*.sqlite-wal
-*.db-shm
-*.db-wal
-
 # Logs
 npm-debug.log*
 yarn-debug.log*
@@ -56,10 +50,3 @@ coverage/
 # Lock files (optional - remove if you want to commit them)
 # package-lock.json
 # yarn.lock
-
-# AI Assistant artifacts
-.claude/
-.claude_assistant_settings.json
-assistant.db
-claude-progress.txt
-.playwright-mcp/
