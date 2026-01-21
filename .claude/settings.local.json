@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd Visualizations page and export functionality to Dashboard\n\nThis commit adds comprehensive visualization and export capabilities:\n\nNew Features:\n- Created Visualizations page with AI-powered chart generation\n- Added visualization template library \\(bar, line, pie, donut, area, table charts\\)\n- Implemented step-by-step visualization builder with 5-step wizard\n- Added export functionality to Dashboard \\(PDF, CSV, JSON formats\\)\n- Integrated AI prompt-based visualization generation\n\nDashboard Updates:\n- Added export dropdown menu with PDF/CSV/JSON options\n- Implemented export handler with proper file download\n- Added visual icons for different export formats\n- Integrated AnimatePresence for smooth dropdown animations\n\nSidebar Updates:\n- Added \"Visualizations\" navigation item with BarChart3 icon\n- Updated navigation structure to include new route\n\nUI/UX Enhancements:\n- Template preview cards with hover effects\n- Saved visualizations management\n- Category filtering system\n- AI-powered natural language visualization creation\n- Multi-step wizard with progress indicators\n- Responsive grid layouts for template library\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "Bash(git remote add:*)",
+      "Bash(git commit:*)",
+      "Bash(gh:*)",
+      "Bash(git config:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(git -C \"d:\\\\slonge\\\\Projects\\\\hackathon-davos\\\\AutoCoder Solution\\\\dmi-hackathon\" log --all --pretty=format: --name-only)",
+      "Bash(xargs:*)",
+      "Bash(git checkout:*)",
+      "Bash(git rm:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash push:*)",
+      "Bash(ls:*)",
+      "Bash(git fetch:*)",
+      "Bash(git reset:*)",
+      "Bash(git stash:*)",
+      "Bash(git log:*)",
+      "Bash(git restore:*)",
+      "Bash(npm run seed:xlsx:*)",
+      "Bash(node -e:*)"
+    ]
+  }
+}

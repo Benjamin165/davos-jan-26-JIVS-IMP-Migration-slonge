@@ -19,7 +19,10 @@ import {
   Layers,
   Download,
   FileSpreadsheet,
-  FileJson
+  FileJson,
+  Link2,
+  ArrowRight,
+  History
 } from 'lucide-react'
 import {
   BarChart,
@@ -161,7 +164,7 @@ function SeverityBadge({ severity }) {
 }
 
 // Detail Side Panel component
-function DetailSidePanel({ record, onClose }) {
+function DetailSidePanel({ record, onClose, relatedRecords, onSelectRecord, navigationHistory, onNavigateBack }) {
   // Handle Escape key to close panel
   useEffect(() => {
     const handleEscape = (e) => {
@@ -196,7 +199,24 @@ function DetailSidePanel({ record, onClose }) {
       >
         {/* Header */}
         <div className="sticky top-0 bg-dark-800 border-b border-dark-600 p-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Record Details</h2>
+          <div className="flex items-center gap-2">
+            {navigationHistory && navigationHistory.length > 0 && (
+              <button
+                onClick={onNavigateBack}
+                className="p-2 rounded-lg hover:bg-dark-700 transition-colors"
+                title="Go back to previous record"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+            )}
+            <h2 className="text-lg font-semibold">Record Details</h2>
+            {navigationHistory && navigationHistory.length > 0 && (
+              <span className="text-xs text-gray-500 flex items-center gap-1">
+                <History className="w-3 h-3" />
+                {navigationHistory.length} in history
+              </span>
+            )}
+          </div>
           <button
             onClick={onClose}
             className="p-2 rounded-lg hover:bg-dark-700 transition-colors"
@@ -318,6 +338,37 @@ function DetailSidePanel({ record, onClose }) {
                 <span className="text-sm">Transformation Rule</span>
               </div>
               <p className="text-sm font-mono break-all">{record.transformation_rule}</p>
+            </div>
+          )}
+
+          {/* Related Records */}
+          {relatedRecords && relatedRecords.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-gray-400 flex items-center gap-2">
+                <Link2 className="w-4 h-4" />
+                Related Records (Same Source)
+              </h3>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {relatedRecords.map((related) => (
+                  <button
+                    key={related.id}
+                    onClick={() => onSelectRecord(related)}
+                    className="w-full p-3 rounded-lg bg-dark-700/30 hover:bg-dark-700/60 transition-colors text-left group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-mono text-sm text-white group-hover:text-primary-400 transition-colors">
+                          #{related.id} → {related.target_object}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Phase {related.phase} • {related.load_status}
+                        </p>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-gray-500 group-hover:text-primary-400 transition-colors" />
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -565,6 +616,8 @@ export default function Dashboard() {
   const [filters, setFilters] = useState({ status: '', severity: '' })
   const [sort, setSort] = useState({ column: 'id', direction: 'asc' })
   const [selectedRecord, setSelectedRecord] = useState(null)
+  const [relatedRecords, setRelatedRecords] = useState([])
+  const [navigationHistory, setNavigationHistory] = useState([])
   const [showExportMenu, setShowExportMenu] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
 
@@ -682,12 +735,56 @@ export default function Dashboard() {
     fetchTableData(1, searchTerm, filters, newSort)
   }
 
+  const fetchRelatedRecords = async (sourceObject, currentId) => {
+    try {
+      const params = new URLSearchParams({
+        search: sourceObject,
+        limit: 10
+      })
+      const response = await api.get(`/reconciliation?${params}`)
+      // Filter out the current record and get records with same source
+      const related = response.data.data
+        .filter(r => r.id !== currentId && r.source_object === sourceObject)
+        .slice(0, 5) // Limit to 5 related records
+      setRelatedRecords(related)
+    } catch (err) {
+      console.error('Failed to fetch related records', err)
+      setRelatedRecords([])
+    }
+  }
+
   const handleRowClick = (record) => {
     setSelectedRecord(record)
+    setNavigationHistory([]) // Reset history when clicking from table
+    if (record.source_object) {
+      fetchRelatedRecords(record.source_object, record.id)
+    }
+  }
+
+  const handleSelectRelatedRecord = (record) => {
+    // Add current record to history before navigating
+    setNavigationHistory(prev => [...prev, selectedRecord])
+    setSelectedRecord(record)
+    if (record.source_object) {
+      fetchRelatedRecords(record.source_object, record.id)
+    }
+  }
+
+  const handleNavigateBack = () => {
+    if (navigationHistory.length > 0) {
+      const previousRecord = navigationHistory[navigationHistory.length - 1]
+      setNavigationHistory(prev => prev.slice(0, -1))
+      setSelectedRecord(previousRecord)
+      if (previousRecord.source_object) {
+        fetchRelatedRecords(previousRecord.source_object, previousRecord.id)
+      }
+    }
   }
 
   const handleClosePanel = () => {
     setSelectedRecord(null)
+    setRelatedRecords([])
+    setNavigationHistory([])
   }
 
   useEffect(() => {
@@ -961,6 +1058,10 @@ export default function Dashboard() {
           <DetailSidePanel
             record={selectedRecord}
             onClose={handleClosePanel}
+            relatedRecords={relatedRecords}
+            onSelectRecord={handleSelectRelatedRecord}
+            navigationHistory={navigationHistory}
+            onNavigateBack={handleNavigateBack}
           />
         )}
       </AnimatePresence>

@@ -94,6 +94,52 @@ cp backend/.env.example backend/.env
 # Edit backend/.env and change JWT_SECRET to a random string
 ```
 
+## Using Custom XLSX Data
+
+To use your own XLSX files instead of procedurally-generated mock data:
+
+### Step 1: Place your XLSX files
+Copy your XLSX files to the `backend/data/` folder:
+```bash
+cp your-recon-data.xlsx backend/data/challenge-1-recon-data.xlsx
+cp your-testrule-data.xlsx backend/data/challenge-1-testrule-data.xlsx
+```
+
+### Step 2: Run the XLSX import
+```bash
+cd backend
+npm run seed:xlsx
+```
+
+### Alternative: Custom file paths
+Set environment variables to use files from any location:
+```bash
+export RECON_XLSX_PATH=/path/to/your/recon-data.xlsx
+export TESTRULE_XLSX_PATH=/path/to/your/testrule-data.xlsx
+npm run seed:xlsx
+```
+
+### Expected XLSX Columns
+
+**Reconciliation Data** (challenge-1-recon-data.xlsx):
+- `SourceObject` / `Source Object` - Source database object name
+- `TargetObject` / `Target Object` - Target database object name
+- `SourceRowCount` - Number of rows in source
+- `TargetRowCount` - Number of rows in target
+- `LoadStatus` / `Status` - Status: pending, running, completed, failed, warning
+- `Severity` - Severity level: info, low, medium, high, critical
+- `Phase` - Migration phase: Extract, Transform, Load, Validate, Reconcile
+- `ObjectType` - Type: Table, View, Procedure, Function, etc.
+
+**Test Rules Data** (challenge-1-testrule-data.xlsx):
+- `TestRuleName` / `RuleName` - Unique rule identifier
+- `PassCount` - Number of passed validations
+- `FailCount` - Number of failed validations
+- `TotalCount` - Total records tested
+- `Status` - Result: pass, fail, pending, warning
+- `Severity` - Severity: low, medium, high, critical
+- `Category` - Rule category
+
 ## Next Steps
 
 - Read the full [README.md](README.md) for complete documentation
