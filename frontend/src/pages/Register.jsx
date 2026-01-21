@@ -10,21 +10,150 @@ export default function Register() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({})
   const [isLoading, setIsLoading] = useState(false)
   const { register } = useAuthStore()
   const navigate = useNavigate()
+
+  // Email validation regex
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
+
+  // Validate individual field
+  const validateField = (field, value) => {
+    const errors = { ...fieldErrors }
+
+    switch (field) {
+      case 'email':
+        if (value && !isValidEmail(value)) {
+          errors.email = 'Please enter a valid email address'
+        } else {
+          delete errors.email
+        }
+        break
+      case 'password':
+        if (value && value.length < 8) {
+          errors.password = 'Password must be at least 8 characters'
+        } else {
+          delete errors.password
+        }
+        break
+      case 'confirmPassword':
+        if (value && value !== password) {
+          errors.confirmPassword = 'Passwords do not match'
+        } else {
+          delete errors.confirmPassword
+        }
+        break
+      case 'name':
+        if (value && value.trim().length < 2) {
+          errors.name = 'Name must be at least 2 characters'
+        } else {
+          delete errors.name
+        }
+        break
+      default:
+        break
+    }
+
+    setFieldErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
+  const handleEmailChange = (e) => {
+    const value = e.target.value
+    setEmail(value)
+    // Clear error when user types a valid email
+    if (fieldErrors.email && isValidEmail(value)) {
+      setFieldErrors(prev => {
+        const { email, ...rest } = prev
+        return rest
+      })
+    }
+  }
+
+  const handlePasswordChange = (e) => {
+    const value = e.target.value
+    setPassword(value)
+    // Clear password error when valid
+    if (fieldErrors.password && value.length >= 8) {
+      setFieldErrors(prev => {
+        const { password, ...rest } = prev
+        return rest
+      })
+    }
+    // Re-validate confirm password when password changes
+    if (confirmPassword && value !== confirmPassword) {
+      setFieldErrors(prev => ({ ...prev, confirmPassword: 'Passwords do not match' }))
+    } else if (confirmPassword) {
+      setFieldErrors(prev => {
+        const { confirmPassword, ...rest } = prev
+        return rest
+      })
+    }
+  }
+
+  const handleConfirmPasswordChange = (e) => {
+    const value = e.target.value
+    setConfirmPassword(value)
+    // Clear error when passwords match
+    if (value === password) {
+      setFieldErrors(prev => {
+        const { confirmPassword, ...rest } = prev
+        return rest
+      })
+    } else {
+      setFieldErrors(prev => ({ ...prev, confirmPassword: 'Passwords do not match' }))
+    }
+  }
+
+  const handleNameChange = (e) => {
+    const value = e.target.value
+    setName(value)
+    // Clear name error when valid
+    if (fieldErrors.name && value.trim().length >= 2) {
+      setFieldErrors(prev => {
+        const { name, ...rest } = prev
+        return rest
+      })
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match')
-      return
+    // Validate all fields
+    const errors = {}
+
+    if (!name.trim()) {
+      errors.name = 'Full name is required'
+    } else if (name.trim().length < 2) {
+      errors.name = 'Name must be at least 2 characters'
     }
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters')
+    if (!email.trim()) {
+      errors.email = 'Email is required'
+    } else if (!isValidEmail(email)) {
+      errors.email = 'Please enter a valid email address'
+    }
+
+    if (!password) {
+      errors.password = 'Password is required'
+    } else if (password.length < 8) {
+      errors.password = 'Password must be at least 8 characters'
+    }
+
+    if (!confirmPassword) {
+      errors.confirmPassword = 'Please confirm your password'
+    } else if (password !== confirmPassword) {
+      errors.confirmPassword = 'Passwords do not match'
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
       return
     }
 
@@ -51,7 +180,7 @@ export default function Register() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="p-3 rounded-lg bg-error-500/20 border border-error-500/50 text-error-400 text-sm">
+          <div className="p-3 rounded-lg bg-error-500/20 border border-error-500/50 text-error-400 text-sm" role="alert" aria-live="assertive">
             {error}
           </div>
         )}
@@ -66,12 +195,15 @@ export default function Register() {
               id="name"
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="input pl-10"
+              onChange={handleNameChange}
+              onBlur={() => validateField('name', name)}
+              className={`input pl-10 ${fieldErrors.name ? 'border-error-500 focus:border-error-500' : ''}`}
               placeholder="John Doe"
-              required
             />
           </div>
+          {fieldErrors.name && (
+            <p className="text-xs text-error-400 mt-1" role="alert" aria-live="polite">{fieldErrors.name}</p>
+          )}
         </div>
 
         <div>
@@ -82,14 +214,17 @@ export default function Register() {
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               id="email"
-              type="email"
+              type="text"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="input pl-10"
+              onChange={handleEmailChange}
+              onBlur={() => validateField('email', email)}
+              className={`input pl-10 ${fieldErrors.email ? 'border-error-500 focus:border-error-500' : ''}`}
               placeholder="you@example.com"
-              required
             />
           </div>
+          {fieldErrors.email && (
+            <p className="text-xs text-error-400 mt-1" role="alert" aria-live="polite">{fieldErrors.email}</p>
+          )}
         </div>
 
         <div>
@@ -102,14 +237,17 @@ export default function Register() {
               id="password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input pl-10"
+              onChange={handlePasswordChange}
+              onBlur={() => validateField('password', password)}
+              className={`input pl-10 ${fieldErrors.password ? 'border-error-500 focus:border-error-500' : ''}`}
               placeholder="••••••••"
-              required
-              minLength={8}
             />
           </div>
-          <p className="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
+          {fieldErrors.password ? (
+            <p className="text-xs text-error-400 mt-1" role="alert" aria-live="polite">{fieldErrors.password}</p>
+          ) : (
+            <p className="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
+          )}
         </div>
 
         <div>
@@ -122,12 +260,15 @@ export default function Register() {
               id="confirmPassword"
               type="password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="input pl-10"
+              onChange={handleConfirmPasswordChange}
+              onBlur={() => validateField('confirmPassword', confirmPassword)}
+              className={`input pl-10 ${fieldErrors.confirmPassword ? 'border-error-500 focus:border-error-500' : ''}`}
               placeholder="••••••••"
-              required
             />
           </div>
+          {fieldErrors.confirmPassword && (
+            <p className="text-xs text-error-400 mt-1" role="alert" aria-live="polite">{fieldErrors.confirmPassword}</p>
+          )}
         </div>
 
         <button

@@ -25,6 +25,8 @@ import {
   ArrowRight,
   History
 } from 'lucide-react'
+import InfoTooltip from '../components/ui/InfoTooltip'
+import { AIRecommendations } from '../components/ui/AIRecommendationCard'
 import {
   BarChart,
   Bar,
@@ -71,7 +73,7 @@ function CustomTooltip({ active, payload, label }) {
 }
 
 // Summary Card Component
-function SummaryCard({ title, value, icon: Icon, trend, color, delay }) {
+function SummaryCard({ title, value, icon: Icon, trend, color, delay, infoTerm }) {
   const colorClasses = {
     primary: 'from-primary-500/20 to-primary-600/10 border-primary-500/30',
     success: 'from-success-500/20 to-success-600/10 border-success-500/30',
@@ -99,7 +101,10 @@ function SummaryCard({ title, value, icon: Icon, trend, color, delay }) {
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-gray-400 mb-1">{title}</p>
+          <div className="flex items-center gap-1 mb-1">
+            <p className="text-sm text-gray-400">{title}</p>
+            {infoTerm && <InfoTooltip term={infoTerm} size="small" />}
+          </div>
           <p className="text-3xl font-bold">{value}</p>
           {trend && (
             <div className="flex items-center gap-1 mt-2 text-xs">
@@ -465,7 +470,10 @@ function DataTable({ data, pagination, isLoading, onPageChange, onSearch, onFilt
     >
       <div className="p-4 border-b border-dark-600">
         <div className="flex items-center justify-between flex-wrap gap-4">
-          <h3 className="text-lg font-semibold">Reconciliation Data</h3>
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+              Reconciliation Data
+              <InfoTooltip term="reconciliation" />
+            </h3>
           <div className="flex items-center gap-2 flex-wrap">
             {/* Status Filter */}
             <select
@@ -908,6 +916,7 @@ export default function Dashboard() {
               icon={Database}
               color="primary"
               delay={0.1}
+              infoTerm="totalObjects"
             />
             <SummaryCard
               title="Success Rate"
@@ -916,6 +925,7 @@ export default function Dashboard() {
               trend="+2.5% from last run"
               color="success"
               delay={0.2}
+              infoTerm="successRate"
             />
             <SummaryCard
               title="Failed Items"
@@ -923,6 +933,7 @@ export default function Dashboard() {
               icon={XCircle}
               color="error"
               delay={0.3}
+              infoTerm="failedItems"
             />
             <SummaryCard
               title="Warnings"
@@ -930,10 +941,23 @@ export default function Dashboard() {
               icon={AlertTriangle}
               color="warning"
               delay={0.4}
+              infoTerm="warnings"
             />
           </>
         ) : null}
       </div>
+
+      {/* AI Recommendations */}
+      {summary && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+          className="card p-6"
+        >
+          <AIRecommendations summary={summary} maxRecommendations={2} />
+        </motion.div>
+      )}
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

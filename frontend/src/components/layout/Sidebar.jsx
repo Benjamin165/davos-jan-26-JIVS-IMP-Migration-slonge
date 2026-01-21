@@ -40,10 +40,10 @@ export default function Sidebar() {
       className={({ isActive }) =>
         cn(
           'flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200',
-          'hover:bg-dark-700/50',
+          'hover:bg-gray-100 dark:hover:bg-dark-700/50',
           isActive
-            ? 'bg-primary-500/20 text-primary-400 border-l-2 border-primary-500'
-            : 'text-gray-400 hover:text-white'
+            ? 'bg-primary-500/20 text-primary-600 dark:text-primary-400 border-l-2 border-primary-500'
+            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
         )
       }
     >
@@ -56,7 +56,7 @@ export default function Sidebar() {
     <>
       {/* Mobile menu button */}
       <button
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-dark-800 text-white"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white dark:bg-dark-800 text-gray-900 dark:text-white shadow-md"
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Toggle menu"
       >
@@ -79,19 +79,19 @@ export default function Sidebar() {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed top-0 left-0 z-40 h-screen w-64 bg-dark-800 border-r border-dark-600',
+          'fixed top-0 left-0 z-40 h-screen w-64 bg-white dark:bg-dark-800 border-r border-gray-200 dark:border-dark-600',
           'transition-transform duration-300 ease-in-out lg:translate-x-0',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         {/* Logo */}
-        <div className="flex items-center gap-3 px-6 py-5 border-b border-dark-600">
+        <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-200 dark:border-dark-600">
           <div className="w-10 h-10 rounded-lg bg-primary-500/20 flex items-center justify-center">
             <Database className="w-6 h-6 text-primary-500" />
           </div>
           <div>
-            <h1 className="font-bold text-white">JIVS Migration</h1>
-            <p className="text-xs text-gray-400">Visual Companion</p>
+            <h1 className="font-bold text-gray-900 dark:text-white">JIVS Migration</h1>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Visual Companion</p>
           </div>
         </div>
 
@@ -119,7 +119,7 @@ export default function Sidebar() {
         </nav>
 
         {/* Footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-dark-600">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-dark-600">
           <div className="text-xs text-gray-500 text-center">
             <p>JIVS IMP Migration</p>
             <p>v1.0.0</p>

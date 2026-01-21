@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import { useAuthStore } from './context/authStore'
 import { useThemeStore } from './context/themeStore'
@@ -23,6 +23,7 @@ import NotFound from './pages/NotFound'
 // Protected Route wrapper
 function ProtectedRoute({ children, adminOnly = false }) {
   const { user, isAuthenticated, isLoading } = useAuthStore()
+  const location = useLocation()
 
   if (isLoading) {
     return (
@@ -33,7 +34,8 @@ function ProtectedRoute({ children, adminOnly = false }) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
+    // Pass the intended destination in state so login can redirect back
+    return <Navigate to="/login" state={{ from: location.pathname + location.search }} replace />
   }
 
   if (adminOnly && user?.role !== 'admin') {

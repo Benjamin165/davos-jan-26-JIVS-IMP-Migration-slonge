@@ -325,16 +325,34 @@ function DeleteModal({ isOpen, onClose, onConfirm, dashboardName }) {
 }
 
 // Dashboard Card Component
-function DashboardCard({ dashboard, onEdit, onDelete, onDuplicate, onSetDefault, onView, isOnly }) {
+function DashboardCard({ dashboard, onEdit, onDelete, onDuplicate, onSetDefault, onView, isOnly, isSelected, onToggleSelect, canSelect }) {
   const [showMenu, setShowMenu] = useState(false)
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative bg-dark-800 border border-dark-600 rounded-xl p-6 hover:border-dark-500 transition-colors group cursor-pointer"
+      className={cn(
+        "relative bg-dark-800 border rounded-xl p-6 hover:border-dark-500 transition-colors group cursor-pointer",
+        isSelected ? "border-primary-500 bg-primary-500/5" : "border-dark-600"
+      )}
       onClick={onView}
     >
+      {/* Checkbox for bulk selection */}
+      {canSelect && (
+        <div
+          className="absolute top-4 left-4"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={() => onToggleSelect(dashboard.id)}
+            className="w-5 h-5 rounded border-dark-500 bg-dark-700 text-primary-500 focus:ring-primary-500 cursor-pointer"
+          />
+        </div>
+      )}
+
       {/* Default badge */}
       {dashboard.is_default && (
         <div className="absolute top-4 right-4 flex items-center gap-1 px-2 py-1 rounded-full bg-primary-500/20 text-primary-400 text-xs">
@@ -426,6 +444,78 @@ function SkeletonCard() {
   )
 }
 
+// Bulk Delete Confirmation Modal
+function BulkDeleteModal({ isOpen, onClose, onConfirm, count }) {
+  const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose()
+      }
+    }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [isOpen, onClose])
+
+  const handleConfirm = async () => {
+    setIsLoading(true)
+    try {
+      await onConfirm()
+      onClose()
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 bg-black/50 z-50"
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-dark-800 rounded-xl border border-dark-600 shadow-2xl z-50"
+      >
+        <div className="p-6">
+          <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-error-500/20">
+            <Trash2 className="w-6 h-6 text-error-400" />
+          </div>
+          <h2 className="text-lg font-semibold text-center mb-2">Delete {count} Dashboard{count > 1 ? 's' : ''}</h2>
+          <p className="text-gray-400 text-center mb-6">
+            Are you sure you want to delete {count} selected dashboard{count > 1 ? 's' : ''}? This action cannot be undone.
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-3 bg-dark-700 hover:bg-dark-600 rounded-lg transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirm}
+              disabled={isLoading}
+              className="flex-1 px-4 py-3 bg-error-500 hover:bg-error-600 rounded-lg transition-colors disabled:opacity-50"
+            >
+              {isLoading ? 'Deleting...' : 'Delete Selected'}
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </>
+  )
+}
+
 export default function Dashboards() {
   const navigate = useNavigate()
   const [dashboards, setDashboards] = useState([])
@@ -437,6 +527,10 @@ export default function Dashboards() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [editingDashboard, setEditingDashboard] = useState(null)
   const [deletingDashboard, setDeletingDashboard] = useState(null)
+
+  // Bulk selection states
+  const [selectedIds, setSelectedIds] = useState(new Set())
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false)
 
   const fetchDashboards = async () => {
     try {
@@ -511,6 +605,49 @@ export default function Dashboards() {
     navigate(`/dashboards/${dashboard.id}`)
   }
 
+  // Bulk selection handlers
+  const toggleSelection = (id) => {
+    const newSelected = new Set(selectedIds)
+    if (newSelected.has(id)) {
+      newSelected.delete(id)
+    } else {
+      newSelected.add(id)
+    }
+    setSelectedIds(newSelected)
+  }
+
+  const selectAll = () => {
+    // Don't select if only 1 dashboard (can't delete last one)
+    if (dashboards.length <= 1) return
+    // Select all except default dashboard
+    const selectableIds = dashboards
+      .filter(d => !d.is_default)
+      .map(d => d.id)
+    setSelectedIds(new Set(selectableIds))
+  }
+
+  const clearSelection = () => {
+    setSelectedIds(new Set())
+  }
+
+  const handleBulkDelete = async () => {
+    try {
+      // Delete all selected dashboards
+      await Promise.all(
+        Array.from(selectedIds).map(id => api.delete(`/dashboards/${id}`))
+      )
+      setDashboards(dashboards.filter(d => !selectedIds.has(d.id)))
+      setSuccessMessage(`${selectedIds.size} dashboard${selectedIds.size > 1 ? 's' : ''} deleted successfully!`)
+      clearSelection()
+    } catch (err) {
+      setError('Failed to delete some dashboards')
+    }
+  }
+
+  // Get selectable dashboards (exclude default and ensure at least 1 remains)
+  const selectableDashboards = dashboards.filter(d => !d.is_default && dashboards.length > 1)
+  const allSelected = selectableDashboards.length > 0 && selectableDashboards.every(d => selectedIds.has(d.id))
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -520,21 +657,53 @@ export default function Dashboards() {
           <p className="text-gray-400">Create and manage your custom dashboards</p>
         </div>
         <div className="flex gap-3">
-          <button
-            onClick={fetchDashboards}
-            disabled={isLoading}
-            className="btn-secondary px-4 py-2"
-          >
-            <RefreshCw className={cn('w-4 h-4 mr-2', isLoading && 'animate-spin')} />
-            Refresh
-          </button>
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="btn-primary px-4 py-2"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create Dashboard
-          </button>
+          {/* Bulk selection actions */}
+          {selectedIds.size > 0 ? (
+            <>
+              <span className="flex items-center text-sm text-gray-400 mr-2">
+                {selectedIds.size} selected
+              </span>
+              <button
+                onClick={clearSelection}
+                className="btn-secondary px-4 py-2"
+              >
+                Clear Selection
+              </button>
+              <button
+                onClick={() => setShowBulkDeleteModal(true)}
+                className="btn-danger px-4 py-2"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Selected
+              </button>
+            </>
+          ) : (
+            <>
+              {selectableDashboards.length > 0 && (
+                <button
+                  onClick={selectAll}
+                  className="btn-secondary px-4 py-2"
+                >
+                  Select All
+                </button>
+              )}
+              <button
+                onClick={fetchDashboards}
+                disabled={isLoading}
+                className="btn-secondary px-4 py-2"
+              >
+                <RefreshCw className={cn('w-4 h-4 mr-2', isLoading && 'animate-spin')} />
+                Refresh
+              </button>
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="btn-primary px-4 py-2"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Dashboard
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -579,6 +748,9 @@ export default function Dashboards() {
               onSetDefault={() => handleSetDefault(dashboard)}
               onView={() => handleViewDashboard(dashboard)}
               isOnly={dashboards.length === 1}
+              isSelected={selectedIds.has(dashboard.id)}
+              onToggleSelect={toggleSelection}
+              canSelect={!dashboard.is_default && dashboards.length > 1}
             />
           ))
         ) : (
@@ -628,6 +800,18 @@ export default function Dashboards() {
             onClose={() => setDeletingDashboard(null)}
             onConfirm={handleDeleteDashboard}
             dashboardName={deletingDashboard.name}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Bulk Delete Modal */}
+      <AnimatePresence>
+        {showBulkDeleteModal && (
+          <BulkDeleteModal
+            isOpen={showBulkDeleteModal}
+            onClose={() => setShowBulkDeleteModal(false)}
+            onConfirm={handleBulkDelete}
+            count={selectedIds.size}
           />
         )}
       </AnimatePresence>

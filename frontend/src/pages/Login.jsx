@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Mail, Lock, Loader2, X, ArrowLeft } from 'lucide-react'
 import { useAuthStore } from '../context/authStore'
@@ -17,6 +17,10 @@ export default function Login() {
   const [forgotError, setForgotError] = useState('')
   const { login } = useAuthStore()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // Get the intended destination from state (set by ProtectedRoute)
+  const from = location.state?.from || '/dashboard'
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -26,7 +30,8 @@ export default function Login() {
     const result = await login(email, password)
 
     if (result.success) {
-      navigate('/dashboard')
+      // Redirect to intended destination (from ProtectedRoute state) or dashboard
+      navigate(from, { replace: true })
     } else {
       setError(result.error)
     }
@@ -66,7 +71,7 @@ export default function Login() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="p-3 rounded-lg bg-error-500/20 border border-error-500/50 text-error-400 text-sm">
+          <div className="p-3 rounded-lg bg-error-500/20 border border-error-500/50 text-error-400 text-sm" role="alert" aria-live="assertive">
             {error}
           </div>
         )}
@@ -199,7 +204,7 @@ export default function Login() {
                     </p>
 
                     {forgotError && (
-                      <div className="p-3 rounded-lg bg-error-500/20 border border-error-500/50 text-error-400 text-sm">
+                      <div className="p-3 rounded-lg bg-error-500/20 border border-error-500/50 text-error-400 text-sm" role="alert" aria-live="assertive">
                         {forgotError}
                       </div>
                     )}

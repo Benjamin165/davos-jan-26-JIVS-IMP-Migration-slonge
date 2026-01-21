@@ -28,16 +28,16 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-30 bg-dark-800/80 backdrop-blur-md border-b border-dark-600">
+    <header className="sticky top-0 z-30 bg-white/80 dark:bg-dark-800/80 backdrop-blur-md border-b border-gray-200 dark:border-dark-600">
       <div className="flex items-center justify-between px-4 lg:px-6 py-3">
         {/* Left side - Search */}
         <div className="flex items-center gap-4 flex-1 max-w-xl">
-          <div className="hidden sm:flex items-center gap-2 bg-dark-700/50 rounded-lg px-4 py-2 flex-1">
+          <div className="hidden sm:flex items-center gap-2 bg-gray-100 dark:bg-dark-700/50 rounded-lg px-4 py-2 flex-1">
             <Search className="w-4 h-4 text-gray-400" />
             <input
               type="text"
               placeholder="Search..."
-              className="bg-transparent border-none outline-none text-sm text-white placeholder:text-gray-400 w-full"
+              className="bg-transparent border-none outline-none text-sm text-gray-900 dark:text-white placeholder:text-gray-400 w-full"
             />
           </div>
         </div>
@@ -47,13 +47,13 @@ export default function Header() {
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-lg hover:bg-dark-700/50 transition-colors"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700/50 transition-colors"
             aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {theme === 'dark' ? (
-              <Sun className="w-5 h-5 text-gray-400 hover:text-white" />
+              <Sun className="w-5 h-5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white" />
             ) : (
-              <Moon className="w-5 h-5 text-gray-400 hover:text-white" />
+              <Moon className="w-5 h-5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white" />
             )}
           </button>
 
@@ -61,10 +61,10 @@ export default function Header() {
           <div className="relative">
             <button
               onClick={() => setNotificationsOpen(!notificationsOpen)}
-              className="p-2 rounded-lg hover:bg-dark-700/50 transition-colors relative"
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700/50 transition-colors relative"
               aria-label="Notifications"
             >
-              <Bell className="w-5 h-5 text-gray-400 hover:text-white" />
+              <Bell className="w-5 h-5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white" />
               <span className="absolute top-1 right-1 w-2 h-2 bg-error-500 rounded-full" />
             </button>
 
@@ -79,33 +79,33 @@ export default function Header() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="absolute right-0 mt-2 w-80 bg-dark-800 rounded-xl shadow-lg border border-dark-600 overflow-hidden"
+                    className="absolute right-0 mt-2 w-80 bg-white dark:bg-dark-800 rounded-xl shadow-lg border border-gray-200 dark:border-dark-600 overflow-hidden"
                   >
-                    <div className="p-4 border-b border-dark-600">
-                      <h3 className="font-semibold">Notifications</h3>
+                    <div className="p-4 border-b border-gray-200 dark:border-dark-600">
+                      <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
                     </div>
                     <div className="max-h-96 overflow-y-auto">
-                      <div className="p-4 hover:bg-dark-700/50 cursor-pointer border-b border-dark-600">
+                      <div className="p-4 hover:bg-gray-50 dark:hover:bg-dark-700/50 cursor-pointer border-b border-gray-200 dark:border-dark-600">
                         <div className="flex items-start gap-3">
                           <div className="w-2 h-2 rounded-full bg-error-500 mt-2" />
                           <div>
-                            <p className="text-sm font-medium">Critical Failures Detected</p>
-                            <p className="text-xs text-gray-400">47 items require attention</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">Critical Failures Detected</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">47 items require attention</p>
                           </div>
                         </div>
                       </div>
-                      <div className="p-4 hover:bg-dark-700/50 cursor-pointer">
+                      <div className="p-4 hover:bg-gray-50 dark:hover:bg-dark-700/50 cursor-pointer">
                         <div className="flex items-start gap-3">
                           <div className="w-2 h-2 rounded-full bg-success-500 mt-2" />
                           <div>
-                            <p className="text-sm font-medium">Migration Run Complete</p>
-                            <p className="text-xs text-gray-400">89% success rate</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">Migration Run Complete</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">89% success rate</p>
                           </div>
                         </div>
                       </div>
                     </div>
-                    <div className="p-3 border-t border-dark-600">
-                      <button className="w-full text-center text-sm text-primary-400 hover:text-primary-300">
+                    <div className="p-3 border-t border-gray-200 dark:border-dark-600">
+                      <button className="w-full text-center text-sm text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300">
                         View all notifications
                       </button>
                     </div>
@@ -119,13 +119,13 @@ export default function Header() {
           <div className="relative ml-2">
             <button
               onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="flex items-center gap-2 p-2 rounded-lg hover:bg-dark-700/50 transition-colors"
+              className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700/50 transition-colors"
             >
               <div className="w-8 h-8 rounded-full bg-primary-500/20 flex items-center justify-center">
-                <User className="w-4 h-4 text-primary-400" />
+                <User className="w-4 h-4 text-primary-500 dark:text-primary-400" />
               </div>
-              <span className="hidden sm:block text-sm font-medium">{user?.name}</span>
-              <ChevronDown className="w-4 h-4 text-gray-400" />
+              <span className="hidden sm:block text-sm font-medium text-gray-900 dark:text-white">{user?.name}</span>
+              <ChevronDown className="w-4 h-4 text-gray-500 dark:text-gray-400" />
             </button>
 
             <AnimatePresence>
@@ -139,16 +139,16 @@ export default function Header() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="absolute right-0 mt-2 w-56 bg-dark-800 rounded-xl shadow-lg border border-dark-600 overflow-hidden"
+                    className="absolute right-0 mt-2 w-56 bg-white dark:bg-dark-800 rounded-xl shadow-lg border border-gray-200 dark:border-dark-600 overflow-hidden"
                   >
-                    <div className="p-4 border-b border-dark-600">
-                      <p className="font-medium">{user?.name}</p>
-                      <p className="text-sm text-gray-400">{user?.email}</p>
+                    <div className="p-4 border-b border-gray-200 dark:border-dark-600">
+                      <p className="font-medium text-gray-900 dark:text-white">{user?.name}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
                       <span className={cn(
                         'inline-block mt-2 text-xs px-2 py-1 rounded-full',
                         user?.role === 'admin'
-                          ? 'bg-primary-500/20 text-primary-400'
-                          : 'bg-gray-500/20 text-gray-400'
+                          ? 'bg-primary-500/20 text-primary-500 dark:text-primary-400'
+                          : 'bg-gray-500/20 text-gray-500 dark:text-gray-400'
                       )}>
                         {user?.role}
                       </span>
@@ -159,14 +159,14 @@ export default function Header() {
                           setUserMenuOpen(false)
                           navigate('/settings')
                         }}
-                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-dark-700/50 transition-colors text-left"
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700/50 transition-colors text-left"
                       >
-                        <Settings className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm">Settings</span>
+                        <Settings className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                        <span className="text-sm text-gray-700 dark:text-white">Settings</span>
                       </button>
                       <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-dark-700/50 transition-colors text-left text-error-400"
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700/50 transition-colors text-left text-error-500 dark:text-error-400"
                       >
                         <LogOut className="w-4 h-4" />
                         <span className="text-sm">Logout</span>

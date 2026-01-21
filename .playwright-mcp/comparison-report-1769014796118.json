@@ -1,0 +1,28 @@
+{
+  "title": "Migration Run Comparison Report",
+  "generatedAt": "2026-01-21T16:59:56.118Z",
+  "run1": {
+    "name": "Current Run (from XLSX)",
+    "date": "2026-01-21 14:29:04",
+    "totalObjects": 3975,
+    "successful": 72,
+    "failed": 1510,
+    "successRate": 1.8
+  },
+  "run2": {
+    "name": "Current Run (from XLSX)",
+    "date": "2026-01-21 14:29:04",
+    "totalObjects": 3975,
+    "successful": 72,
+    "failed": 1510,
+    "successRate": 1.8
+  },
+  "differences": {
+    "totalObjects": 0,
+    "successfulObjects": 0,
+    "failedObjects": 0,
+    "warningObjects": 0,
+    "successRateDiff": 0
+  },
+  "trend": "unchanged"
+}

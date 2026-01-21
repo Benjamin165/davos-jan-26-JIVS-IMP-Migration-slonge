@@ -1,13 +1,15 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { User, Bell, Palette, Shield, Save, Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { User, Bell, Palette, Shield, Save, Loader2, AlertTriangle, X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../context/authStore'
 import { useThemeStore } from '../context/themeStore'
 import api from '../utils/api'
 import { cn } from '../utils/cn'
 
 export default function Settings() {
-  const { user, updateUser } = useAuthStore()
+  const navigate = useNavigate()
+  const { user, updateUser, logout } = useAuthStore()
   const { theme, setTheme } = useThemeStore()
 
   const [activeTab, setActiveTab] = useState('profile')
@@ -19,6 +21,12 @@ export default function Settings() {
   })
   const [isSaving, setIsSaving] = useState(false)
   const [message, setMessage] = useState(null)
+
+  // Delete account state
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleteError, setDeleteError] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: User },
@@ -64,6 +72,46 @@ export default function Settings() {
       console.error('Failed to save theme preference:', err)
     }
   }
+
+  const handleDeleteAccount = async () => {
+    if (!deletePassword) {
+      setDeleteError('Please enter your password to confirm deletion')
+      return
+    }
+
+    setIsDeleting(true)
+    setDeleteError('')
+
+    try {
+      // Verify password and delete account
+      await api.post(`/users/${user.id}/delete`, { password: deletePassword })
+
+      // Logout and redirect to login page
+      await logout()
+      navigate('/login')
+    } catch (err) {
+      setDeleteError(err.response?.data?.error || 'Failed to delete account. Please check your password.')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false)
+    setDeletePassword('')
+    setDeleteError('')
+  }
+
+  // Handle Escape key for modal
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && showDeleteModal) {
+        closeDeleteModal()
+      }
+    }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [showDeleteModal])
 
   return (
     <div className="space-y-6">
@@ -304,7 +352,10 @@ export default function Settings() {
                 <p className="text-sm text-gray-400 mb-4">
                   Permanently delete your account and all associated data
                 </p>
-                <button className="btn-danger px-4 py-2">
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="btn-danger px-4 py-2"
+                >
                   Delete Account
                 </button>
               </div>
@@ -312,6 +363,92 @@ export default function Settings() {
           )}
         </div>
       </div>
+
+      {/* Delete Account Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeDeleteModal}
+              className="fixed inset-0 bg-black/50 z-50"
+            />
+
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-dark-800 rounded-xl border border-dark-600 shadow-2xl z-50 p-6"
+            >
+              {/* Header */}
+              <div className="flex items-start gap-4 mb-4">
+                <div className="p-3 rounded-full bg-error-500/20">
+                  <AlertTriangle className="w-6 h-6 text-error-400" />
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-lg font-semibold text-error-400">Delete Account</h2>
+                  <p className="text-sm text-gray-400 mt-1">
+                    This action cannot be undone. All your data will be permanently deleted.
+                  </p>
+                </div>
+                <button
+                  onClick={closeDeleteModal}
+                  className="p-1 rounded hover:bg-dark-700 transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
+
+              {/* Password confirmation */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Enter your password to confirm
+                </label>
+                <input
+                  type="password"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  placeholder="Your password"
+                  className="input w-full"
+                  autoFocus
+                />
+                {deleteError && (
+                  <p className="text-sm text-error-400 mt-2">{deleteError}</p>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={closeDeleteModal}
+                  className="btn-secondary px-4 py-2"
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={isDeleting || !deletePassword}
+                  className="btn-danger px-4 py-2"
+                >
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      Deleting...
+                    </>
+                  ) : (
+                    'Delete My Account'
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
