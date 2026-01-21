@@ -1,6 +1,6 @@
 # JIVS Migration Visual Companion - Progress Report
 
-## Session 19: Regression Testing Verification
+## Session 20: Regression Testing Verification
 
 ### Date: January 21, 2026
 
@@ -10,40 +10,41 @@
 
 All regression tests passed successfully:
 
-1. **Feature #45: Sidebar navigation to all main pages** ✅
-   - Dashboard link works correctly
-   - Test Rules link works correctly
-   - Settings link works correctly
-   - Comparison link works correctly
-   - All pages load with proper content
+1. **Feature #27: Natural language visual customization** ✅
+   - Logged in and opened visualization builder
+   - Entered natural language prompt "show failures by object type as pie chart"
+   - Clicked Generate button
+   - Chart rendered matching the request (Pie Chart displayed)
+   - Correct chart type shown (Pie Chart)
+   - Title reflects the prompt filter ("Custom: show failures by object type as pie chart")
 
-2. **Feature #50: Pagination preserves filters** ✅
-   - Applied "Failed" status filter
-   - URL updated to include filter parameter (`?status=failed`)
-   - Navigated to page 2
-   - Filter remained applied (dropdown showed "Failed")
-   - Page 2 results still showed only "Failed" records
-   - URL preserved both filter and page (`?status=failed&page=2`)
-
-3. **Feature #61: Invalid form input shows field error** ✅
-   - Navigated to registration form
-   - Entered invalid email format ("invalid-email")
-   - Clicked submit button
-   - Error message "Please enter a valid email address" appeared near email field
-   - Other field validation errors displayed properly
-   - Form was NOT submitted (stayed on registration page)
+2. **Feature #134: Comparison filter only changed items** ✅
+   - Opened comparison view with two runs selected
+   - Clicked 'Show Changed Only' filter button
+   - Table heading changed to "(Showing changed only)"
+   - Only different items shown (since both runs identical, shows "No changes detected between runs")
+   - Unchanged items hidden from detailed comparison table
 
 ### Screenshots Captured
-- regression-test-dashboard-main.png
-- regression-test-rules.png
-- regression-test-settings.png
-- regression-test-comparison.png
-- regression-test-pagination-filters.png
-- regression-test-form-validation.png
+- regression-test-dashboard.png
+- regression-feature27-visualization.png
+- regression-feature134-comparison-before.png
+- regression-feature134-comparison-filtered.png
+- regression-feature134-table-filtered.png
 
 ---
 
-## Session 18: Regression Testing Verification (Previous)
+## Session 19: Regression Testing Verification (Previous)
+
+All regression tests passed successfully:
+
+1. **Feature #45: Sidebar navigation to all main pages** ✅
+2. **Feature #50: Pagination preserves filters** ✅
+3. **Feature #61: Invalid form input shows field error** ✅
+
+---
+
+## Session 18: Regression Testing Verification
 
 All regression tests passed successfully:
 
@@ -163,6 +164,7 @@ Default credentials:
 
 | Session | Features Completed | Progress |
 |---------|-------------------|----------|
+| 20 | Regression testing (#27, #134) | 100% (154/154) |
 | 19 | Regression testing (#45, #50, #61) | 100% (154/154) |
 | 18 | Regression testing (#114, #20, #34) | 100% (154/154) |
 | 17 | Regression testing (#8, #84, #71) | 100% (154/154) |
