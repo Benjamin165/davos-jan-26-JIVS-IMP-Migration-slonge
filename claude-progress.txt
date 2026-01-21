@@ -1,12 +1,57 @@
 # JIVS Migration Visual Companion - Progress Report
 
-## Session 27: Regression Testing Verification
+## Session 28: Regression Testing Verification
 
 ### Date: January 21, 2026
 
 ---
 
 ## REGRESSION TESTS COMPLETED
+
+All regression tests passed successfully:
+
+1. **Feature #107: Navigation during API call completes gracefully** ✅
+   - Navigated from Dashboard to Test Rules
+   - Immediately navigated to Comparison page
+   - Then navigated back to Dashboard
+   - All pages loaded correctly without errors
+   - No crashes or console errors during rapid navigation
+   - Second page loaded correctly after navigation
+
+2. **Feature #16: Test rules expandable sections** ✅
+   - Logged in and navigated to Test Rules view
+   - Found collapsed "Other" group (50 failed rules, 1,982,950 total failures)
+   - Clicked to expand section - individual rules revealed
+   - Clicked ALLOWANCE_TYPE rule - showed details:
+     - SQL Condition: `ISNULL(ALLOWANCE_TYPE, '') != ''`
+     - Pass Count: 0, Fail Count: 39659, Pass Rate: 0.0%
+   - Clicked to collapse section - details hidden
+   - Expand/collapse working correctly
+
+3. **Feature #37: Contextual tooltips on elements** ✅
+   - Navigated to Dashboard
+   - Clicked "What is Total Objects?" info icon - tooltip appeared
+   - Tooltip showed: "The total count of all data items being tracked in the migration, regardless of their status."
+   - Clicked "Why am I seeing this?" on AI Recommendation
+   - Tooltip showed explanation for recommendation trigger
+   - Clicked "What is Reconciliation?" info icon - tooltip appeared
+   - Tooltip showed migration concept explanation
+   - All info icons working with helpful explanations
+
+### Screenshots Captured
+- regression-session28-dashboard.png
+- regression-session28-testrules-expandable.png
+- regression-session28-tooltip.png
+
+---
+
+## Session 27: Regression Testing Verification
+
+### Date: January 21, 2026
+
+---
+
+## PREVIOUS REGRESSION TESTS (Session 27)
 
 All regression tests passed successfully:
 
