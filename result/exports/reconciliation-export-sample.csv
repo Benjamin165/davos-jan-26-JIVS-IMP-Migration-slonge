@@ -1,0 +1,11 @@
+id,source_object,load_status,severity,phase,message,created_at
+1,CUSTOMER_MASTER,completed,low,1,Migration completed successfully,2025-01-15T10:30:00Z
+2,ORDER_HEADER,failed,critical,2,Foreign key constraint violation,2025-01-15T10:31:00Z
+3,PRODUCT_CATALOG,completed,low,1,All records migrated,2025-01-15T10:32:00Z
+4,INVENTORY,warning,medium,3,Partial data migration - 5 records skipped,2025-01-15T10:33:00Z
+5,SUPPLIER_INFO,failed,high,2,Data type mismatch in column PHONE,2025-01-15T10:34:00Z
+6,EMPLOYEE_DATA,completed,low,1,Successfully processed 1500 records,2025-01-15T10:35:00Z
+7,SALES_HISTORY,pending,low,1,Queued for processing,2025-01-15T10:36:00Z
+8,FINANCIAL_TRANS,running,medium,2,Processing batch 3 of 10,2025-01-15T10:37:00Z
+9,CUSTOMER_CONTACT,failed,critical,3,Required field EMAIL is null,2025-01-15T10:38:00Z
+10,PRICING_TABLE,completed,low,1,Price conversion completed,2025-01-15T10:39:00Z
