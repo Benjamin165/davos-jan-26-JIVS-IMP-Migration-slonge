@@ -78,6 +78,27 @@ const SAMPLE_DATA = [
 function ChartPreview({ type, data = SAMPLE_DATA, small = false }) {
   const height = small ? 120 : 200
 
+  // Handle empty or insufficient data
+  if (!data || data.length === 0) {
+    return (
+      <div className={cn("flex items-center justify-center text-gray-500", small ? "h-28" : "h-48")}>
+        <p className="text-sm">No data available</p>
+      </div>
+    )
+  }
+
+  // Show message if only one data point for pie/donut
+  if ((type === 'pie' || type === 'donut') && data.length === 1) {
+    return (
+      <div className={cn("flex flex-col items-center justify-center", small ? "h-28" : "h-48")}>
+        <div className="text-center">
+          <p className="text-2xl font-bold text-white">{data[0].value.toLocaleString()}</p>
+          <p className="text-sm text-gray-400">{data[0].name}</p>
+        </div>
+      </div>
+    )
+  }
+
   if (type === 'bar') {
     return (
       <ResponsiveContainer width="100%" height={height}>
@@ -122,12 +143,15 @@ function ChartPreview({ type, data = SAMPLE_DATA, small = false }) {
             outerRadius={small ? 40 : 60}
             paddingAngle={2}
             dataKey="value"
+            label={!small ? ({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)` : false}
+            labelLine={!small}
           >
             {data.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.fill} />
             ))}
           </Pie>
-          <Tooltip />
+          <Tooltip formatter={(value) => value.toLocaleString()} />
+          {!small && <Legend />}
         </RechartsPie>
       </ResponsiveContainer>
     )
@@ -651,7 +675,7 @@ function CreateVisualizationModal({ onClose, onSave, initialType }) {
 }
 
 // Saved Visualization Card
-function SavedVisualizationCard({ visualization, onDelete }) {
+function SavedVisualizationCard({ visualization, onDelete, onRename }) {
   const typeConfig = CHART_TYPES[visualization.type] || CHART_TYPES.bar
   const Icon = typeConfig.icon
 
@@ -679,8 +703,16 @@ function SavedVisualizationCard({ visualization, onDelete }) {
             View
           </button>
           <button
+            onClick={() => onRename(visualization)}
+            className="px-3 py-1.5 text-sm bg-dark-700 hover:bg-primary-500/20 hover:text-primary-400 rounded-lg transition-colors"
+            title="Rename"
+          >
+            <Edit2 className="w-3 h-3" />
+          </button>
+          <button
             onClick={() => onDelete(visualization.id)}
             className="px-3 py-1.5 text-sm bg-dark-700 hover:bg-error-500/20 hover:text-error-400 rounded-lg transition-colors"
+            title="Delete"
           >
             <Trash2 className="w-3 h-3" />
           </button>
@@ -690,13 +722,118 @@ function SavedVisualizationCard({ visualization, onDelete }) {
   )
 }
 
+// Rename Visualization Modal
+function RenameVisualizationModal({ visualization, isOpen, onClose, onSave }) {
+  const [name, setName] = useState(visualization?.name || '')
+  const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (visualization) {
+      setName(visualization.name || '')
+      setError(null)
+    }
+  }, [visualization])
+
+  const handleSave = async () => {
+    if (!name.trim()) {
+      setError('Name cannot be empty')
+      return
+    }
+    setIsSaving(true)
+    setError(null)
+    try {
+      await onSave(visualization.id, name.trim())
+      onClose()
+    } catch (err) {
+      setError(err.message || 'Failed to rename visualization')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  if (!isOpen || !visualization) return null
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        className="bg-dark-800 border border-dark-600 rounded-xl p-6 w-full max-w-md"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Rename Visualization</h3>
+          <button onClick={onClose} className="p-1 hover:bg-dark-700 rounded">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm text-gray-400 mb-2">Visualization Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter a name..."
+              className="w-full px-4 py-2 bg-dark-700 border border-dark-600 rounded-lg focus:outline-none focus:border-primary-500"
+              autoFocus
+              onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+            />
+          </div>
+
+          {error && (
+            <p className="text-sm text-error-400">{error}</p>
+          )}
+
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-sm bg-dark-700 hover:bg-dark-600 rounded-lg transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving || !name.trim()}
+              className="px-4 py-2 text-sm bg-primary-500 hover:bg-primary-600 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSaving ? 'Saving...' : 'Save'}
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
 // AI Generated Visualization Preview
-function AIGeneratedPreview({ visualization, previewData, onSave, onClose }) {
+function AIGeneratedPreview({ visualization, previewData, interpretation, onSave, onClose, onNameChange }) {
+  const [editableName, setEditableName] = useState(visualization?.name || '')
   const typeConfig = CHART_TYPES[visualization.type] || CHART_TYPES.bar
   const chartData = previewData.map((item, idx) => ({
     ...item,
-    fill: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'][idx % 7]
+    fill: ['#2E5BFF', '#22C55E', '#F59E0B', '#EF4444', '#8B5CF6', '#ec4899', '#06b6d4'][idx % 7]
   }))
+
+  useEffect(() => {
+    setEditableName(visualization?.name || '')
+  }, [visualization?.name])
+
+  const handleNameChange = (newName) => {
+    setEditableName(newName)
+    if (onNameChange) {
+      onNameChange(newName)
+    }
+  }
 
   return (
     <motion.div
@@ -705,12 +842,30 @@ function AIGeneratedPreview({ visualization, previewData, onSave, onClose }) {
       className="bg-dark-800 border border-dark-600 rounded-xl p-4"
     >
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-1">
           <div className={cn("p-2 rounded-lg bg-dark-700", typeConfig.color)}>
             <typeConfig.icon className="w-5 h-5" />
           </div>
-          <div>
-            <h3 className="font-medium">{visualization.name}</h3>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={editableName}
+                onChange={(e) => handleNameChange(e.target.value)}
+                placeholder="Enter visualization name..."
+                className="bg-dark-700 border border-dark-600 rounded px-2 py-1 text-sm font-medium focus:outline-none focus:border-primary-500 w-full max-w-xs"
+              />
+              {interpretation?.aiPowered ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-[#2E5BFF]/20 text-[#2E5BFF] whitespace-nowrap">
+                  <Sparkles className="w-3 h-3" />
+                  AI Powered
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-gray-500/20 text-gray-400 whitespace-nowrap">
+                  Basic Mode
+                </span>
+              )}
+            </div>
             <p className="text-xs text-gray-400">{typeConfig.label}</p>
           </div>
         </div>
@@ -719,9 +874,36 @@ function AIGeneratedPreview({ visualization, previewData, onSave, onClose }) {
         </button>
       </div>
 
+      {/* AI Reasoning */}
+      {interpretation?.reasoning && (
+        <div className="mb-4 p-3 rounded-lg bg-[#2E5BFF]/10 border border-[#2E5BFF]/20">
+          <div className="flex items-start gap-2">
+            <Sparkles className="w-4 h-4 text-[#2E5BFF] mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-gray-300">{interpretation.reasoning}</p>
+          </div>
+        </div>
+      )}
+
       <div className="bg-dark-900 rounded-lg p-4 mb-4">
         <ChartPreview type={visualization.type} data={chartData} />
       </div>
+
+      {/* Interpretation details */}
+      {interpretation && (
+        <div className="mb-4 flex flex-wrap gap-2 text-xs">
+          <span className="px-2 py-1 rounded bg-dark-700 text-gray-400">
+            Data: <span className="text-white">{interpretation.dataSource}</span>
+          </span>
+          <span className="px-2 py-1 rounded bg-dark-700 text-gray-400">
+            Grouped by: <span className="text-white">{interpretation.groupBy}</span>
+          </span>
+          {interpretation.filter !== 'none' && (
+            <span className="px-2 py-1 rounded bg-dark-700 text-gray-400">
+              Filter: <span className="text-white">{interpretation.filter}</span>
+            </span>
+          )}
+        </div>
+      )}
 
       <div className="flex gap-3">
         <button
@@ -756,6 +938,8 @@ export default function Visualizations() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedVisualization, setGeneratedVisualization] = useState(null)
   const [generatedPreviewData, setGeneratedPreviewData] = useState(null)
+  const [generatedInterpretation, setGeneratedInterpretation] = useState(null)
+  const [renameModalViz, setRenameModalViz] = useState(null)
 
   const fetchTemplates = async () => {
     try {
@@ -822,6 +1006,24 @@ export default function Visualizations() {
     }
   }
 
+  const handleRenameVisualization = async (id, newName) => {
+    try {
+      await api.put(`/visualizations/${id}`, { name: newName })
+      setSavedVisualizations(prev =>
+        prev.map(v => v.id === id ? { ...v, name: newName } : v)
+      )
+      setSuccessMessage(`Visualization renamed to "${newName}"!`)
+    } catch (err) {
+      throw new Error(err.response?.data?.error || 'Failed to rename visualization')
+    }
+  }
+
+  const handleGeneratedNameChange = (newName) => {
+    if (generatedVisualization) {
+      setGeneratedVisualization(prev => ({ ...prev, name: newName }))
+    }
+  }
+
   const handleGenerateFromPrompt = async () => {
     if (!aiPrompt.trim()) return
 
@@ -832,7 +1034,11 @@ export default function Visualizations() {
       const response = await api.post('/ai/generate-visual', { prompt: aiPrompt })
       setGeneratedVisualization(response.data.visualization)
       setGeneratedPreviewData(response.data.previewData)
-      setSuccessMessage('Visualization generated! Review and save below.')
+      setGeneratedInterpretation(response.data.interpretation)
+      const modeMessage = response.data.interpretation?.aiPowered
+        ? 'AI-powered visualization generated! Review and save below.'
+        : 'Visualization generated! Review and save below.'
+      setSuccessMessage(modeMessage)
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to generate visualization')
     } finally {
@@ -849,6 +1055,7 @@ export default function Visualizations() {
       setSuccessMessage(`Visualization "${generatedVisualization.name}" saved!`)
       setGeneratedVisualization(null)
       setGeneratedPreviewData(null)
+      setGeneratedInterpretation(null)
       setAiPrompt('')
       setActiveTab('saved')
     } catch (err) {
@@ -970,11 +1177,14 @@ export default function Visualizations() {
           <AIGeneratedPreview
             visualization={generatedVisualization}
             previewData={generatedPreviewData}
+            interpretation={generatedInterpretation}
             onSave={handleSaveGeneratedVisualization}
             onClose={() => {
               setGeneratedVisualization(null)
               setGeneratedPreviewData(null)
+              setGeneratedInterpretation(null)
             }}
+            onNameChange={handleGeneratedNameChange}
           />
         )}
       </AnimatePresence>
@@ -1042,6 +1252,7 @@ export default function Visualizations() {
                   key={viz.id}
                   visualization={viz}
                   onDelete={handleDeleteVisualization}
+                  onRename={(v) => setRenameModalViz(v)}
                 />
               ))}
             </div>
@@ -1145,6 +1356,16 @@ export default function Visualizations() {
             onSave={handleCreateVisualization}
           />
         )}
+      </AnimatePresence>
+
+      {/* Rename Visualization Modal */}
+      <AnimatePresence>
+        <RenameVisualizationModal
+          visualization={renameModalViz}
+          isOpen={!!renameModalViz}
+          onClose={() => setRenameModalViz(null)}
+          onSave={handleRenameVisualization}
+        />
       </AnimatePresence>
     </div>
   )

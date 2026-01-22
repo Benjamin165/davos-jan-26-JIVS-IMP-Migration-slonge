@@ -11,11 +11,73 @@ import {
   X,
   Check,
   RefreshCw,
-  Eye
+  Eye,
+  Briefcase,
+  Shield,
+  Activity,
+  BarChart3,
+  PieChart,
+  TrendingUp
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import api from '../utils/api'
 import { cn } from '../utils/cn'
+
+// Dashboard templates for new dashboard creation
+const DASHBOARD_TEMPLATES = [
+  {
+    id: 'blank',
+    name: 'Blank Dashboard',
+    description: 'Start with an empty canvas',
+    icon: LayoutDashboard,
+    color: 'text-gray-400',
+    bgColor: 'bg-gray-500/20',
+    layout: []
+  },
+  {
+    id: 'executive',
+    name: 'Executive Summary',
+    description: 'High-level KPIs and status overview',
+    icon: Briefcase,
+    color: 'text-primary-400',
+    bgColor: 'bg-primary-500/20',
+    layout: [
+      { id: 'exec-1', type: 'summary-card', isDefault: false, config: { metric: 'total', title: 'Total Objects', color: 'primary' }},
+      { id: 'exec-2', type: 'summary-card', isDefault: false, config: { metric: 'successRate', title: 'Success Rate', color: 'success' }},
+      { id: 'exec-3', type: 'summary-card', isDefault: false, config: { metric: 'failed', title: 'Failed', color: 'error' }},
+      { id: 'exec-4', type: 'summary-card', isDefault: false, config: { metric: 'warnings', title: 'Warnings', color: 'warning' }},
+      { id: 'exec-5', type: 'pie-chart-large', isDefault: false, config: { dataSource: 'status', title: 'Status Distribution' }}
+    ]
+  },
+  {
+    id: 'quality',
+    name: 'Data Quality Focus',
+    description: 'Track data quality and test rule results',
+    icon: Shield,
+    color: 'text-success-400',
+    bgColor: 'bg-success-500/20',
+    layout: [
+      { id: 'qual-1', type: 'summary-card', isDefault: false, config: { metric: 'failed', title: 'Failed Items', color: 'error' }},
+      { id: 'qual-2', type: 'summary-card', isDefault: false, config: { metric: 'warnings', title: 'Warnings', color: 'warning' }},
+      { id: 'qual-3', type: 'bar-chart-large', isDefault: false, config: { dataSource: 'severity', title: 'Issues by Severity' }},
+      { id: 'qual-4', type: 'stats-grid', isDefault: false, config: { title: 'Quick Stats' }}
+    ]
+  },
+  {
+    id: 'operations',
+    name: 'Operations View',
+    description: 'Detailed breakdown for migration teams',
+    icon: Activity,
+    color: 'text-warning-400',
+    bgColor: 'bg-warning-500/20',
+    layout: [
+      { id: 'ops-1', type: 'stats-grid', isDefault: false, config: { title: 'Status Overview' }},
+      { id: 'ops-2', type: 'bar-chart-large', isDefault: false, config: { dataSource: 'status', title: 'Status Distribution' }},
+      { id: 'ops-3', type: 'bar-chart-large', isDefault: false, config: { dataSource: 'severity', title: 'Severity Breakdown' }},
+      { id: 'ops-4', type: 'pie-chart-large', isDefault: false, config: { dataSource: 'status', title: 'Completion Rate' }}
+    ]
+  }
+]
 
 // Unsaved Changes Warning Modal
 function UnsavedChangesModal({ isOpen, onClose, onDiscard, onStay }) {
@@ -71,6 +133,8 @@ function UnsavedChangesModal({ isOpen, onClose, onDiscard, onStay }) {
 
 // Create/Edit Dashboard Modal
 function DashboardModal({ isOpen, onClose, onSave, dashboard = null }) {
+  const [step, setStep] = useState(dashboard ? 2 : 1) // Skip template selection when editing
+  const [selectedTemplate, setSelectedTemplate] = useState(DASHBOARD_TEMPLATES[0])
   const [name, setName] = useState(dashboard?.name || '')
   const [isDefault, setIsDefault] = useState(dashboard?.is_default || false)
   const [isLoading, setIsLoading] = useState(false)
@@ -92,6 +156,8 @@ function DashboardModal({ isOpen, onClose, onSave, dashboard = null }) {
       setInitialIsDefault(defaultProp)
       setError('')
       setShowUnsavedWarning(false)
+      setStep(dashboard ? 2 : 1)
+      setSelectedTemplate(DASHBOARD_TEMPLATES[0])
     }
   }, [isOpen, dashboard])
 
@@ -137,13 +203,31 @@ function DashboardModal({ isOpen, onClose, onSave, dashboard = null }) {
     setError('')
 
     try {
-      await onSave({ name: name.trim(), is_default: isDefault })
+      // Include layout from selected template (only for new dashboards)
+      const dashboardData = {
+        name: name.trim(),
+        is_default: isDefault,
+        ...(dashboard ? {} : { layout: selectedTemplate.layout })
+      }
+      await onSave(dashboardData)
       onClose()
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to save dashboard')
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleSelectTemplate = (template) => {
+    setSelectedTemplate(template)
+  }
+
+  const handleNext = () => {
+    setStep(2)
+  }
+
+  const handleBack = () => {
+    setStep(1)
   }
 
   if (!isOpen) return null
@@ -164,11 +248,14 @@ function DashboardModal({ isOpen, onClose, onSave, dashboard = null }) {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-dark-800 rounded-xl border border-dark-600 shadow-2xl z-50"
+        className={cn(
+          "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-dark-800 rounded-xl border border-dark-600 shadow-2xl z-50",
+          step === 1 ? "w-full max-w-2xl" : "w-full max-w-md"
+        )}
       >
         <div className="flex items-center justify-between p-4 border-b border-dark-600">
           <h2 className="text-lg font-semibold">
-            {dashboard ? 'Edit Dashboard' : 'Create New Dashboard'}
+            {dashboard ? 'Edit Dashboard' : step === 1 ? 'Choose a Template' : 'Create New Dashboard'}
           </h2>
           <button
             onClick={handleCloseAttempt}
@@ -178,58 +265,143 @@ function DashboardModal({ isOpen, onClose, onSave, dashboard = null }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          {error && (
-            <div className="p-3 rounded-lg bg-error-500/20 border border-error-500/50 text-error-400 text-sm">
-              {error}
+        {/* Step 1: Template Selection (only for new dashboards) */}
+        {step === 1 && !dashboard && (
+          <div className="p-4">
+            <p className="text-gray-400 text-sm mb-4">Select a template to get started</p>
+            <div className="grid grid-cols-2 gap-3">
+              {DASHBOARD_TEMPLATES.map((template) => {
+                const Icon = template.icon
+                const isSelected = selectedTemplate?.id === template.id
+                return (
+                  <button
+                    key={template.id}
+                    onClick={() => handleSelectTemplate(template)}
+                    className={cn(
+                      "p-4 rounded-xl border-2 text-left transition-all",
+                      isSelected
+                        ? "border-primary-500 bg-primary-500/10"
+                        : "border-dark-600 hover:border-dark-500 bg-dark-700/50"
+                    )}
+                  >
+                    <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center mb-3", template.bgColor)}>
+                      <Icon className={cn("w-5 h-5", template.color)} />
+                    </div>
+                    <h3 className="font-medium mb-1">{template.name}</h3>
+                    <p className="text-xs text-gray-400">{template.description}</p>
+                    {template.layout.length > 0 && (
+                      <p className="text-xs text-gray-500 mt-2">
+                        {template.layout.length} widget{template.layout.length !== 1 ? 's' : ''}
+                      </p>
+                    )}
+                  </button>
+                )
+              })}
             </div>
-          )}
-
-          <div>
-            <label htmlFor="dashboard-name" className="block text-sm font-medium text-gray-400 mb-2">
-              Dashboard Name
-            </label>
-            <input
-              id="dashboard-name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter dashboard name"
-              className="w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              autoFocus
-            />
+            <div className="flex gap-3 mt-6">
+              <button
+                type="button"
+                onClick={handleCloseAttempt}
+                className="flex-1 px-4 py-3 bg-dark-700 hover:bg-dark-600 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleNext}
+                className="flex-1 px-4 py-3 bg-primary-500 hover:bg-primary-600 rounded-lg transition-colors"
+              >
+                Next
+              </button>
+            </div>
           </div>
+        )}
 
-          <div className="flex items-center gap-3">
-            <input
-              id="is-default"
-              type="checkbox"
-              checked={isDefault}
-              onChange={(e) => setIsDefault(e.target.checked)}
-              className="w-4 h-4 rounded border-dark-600 bg-dark-700 text-primary-500 focus:ring-primary-500"
-            />
-            <label htmlFor="is-default" className="text-sm text-gray-400">
-              Set as default dashboard
-            </label>
-          </div>
+        {/* Step 2: Dashboard Details */}
+        {step === 2 && (
+          <form onSubmit={handleSubmit} className="p-4 space-y-4">
+            {error && (
+              <div className="p-3 rounded-lg bg-error-500/20 border border-error-500/50 text-error-400 text-sm">
+                {error}
+              </div>
+            )}
 
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={handleCloseAttempt}
-              className="flex-1 px-4 py-3 bg-dark-700 hover:bg-dark-600 rounded-lg transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="flex-1 px-4 py-3 bg-primary-500 hover:bg-primary-600 rounded-lg transition-colors disabled:opacity-50"
-            >
-              {isLoading ? 'Saving...' : dashboard ? 'Update' : 'Create'}
-            </button>
-          </div>
-        </form>
+            {!dashboard && selectedTemplate && (
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-dark-700/50 border border-dark-600">
+                <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", selectedTemplate.bgColor)}>
+                  <selectedTemplate.icon className={cn("w-4 h-4", selectedTemplate.color)} />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{selectedTemplate.name}</p>
+                  <p className="text-xs text-gray-400">
+                    {selectedTemplate.layout.length === 0 ? 'Empty canvas' : `${selectedTemplate.layout.length} widgets`}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="text-xs text-primary-400 hover:text-primary-300"
+                >
+                  Change
+                </button>
+              </div>
+            )}
+
+            <div>
+              <label htmlFor="dashboard-name" className="block text-sm font-medium text-gray-400 mb-2">
+                Dashboard Name
+              </label>
+              <input
+                id="dashboard-name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter dashboard name"
+                className="w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex items-center gap-3">
+              <input
+                id="is-default"
+                type="checkbox"
+                checked={isDefault}
+                onChange={(e) => setIsDefault(e.target.checked)}
+                className="w-4 h-4 rounded border-dark-600 bg-dark-700 text-primary-500 focus:ring-primary-500"
+              />
+              <label htmlFor="is-default" className="text-sm text-gray-400">
+                Set as default dashboard
+              </label>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              {!dashboard && (
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="px-4 py-3 bg-dark-700 hover:bg-dark-600 rounded-lg transition-colors"
+                >
+                  Back
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleCloseAttempt}
+                className={cn("px-4 py-3 bg-dark-700 hover:bg-dark-600 rounded-lg transition-colors", dashboard ? "flex-1" : "")}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="flex-1 px-4 py-3 bg-primary-500 hover:bg-primary-600 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {isLoading ? 'Saving...' : dashboard ? 'Update' : 'Create'}
+              </button>
+            </div>
+          </form>
+        )}
       </motion.div>
 
       {/* Unsaved Changes Warning */}

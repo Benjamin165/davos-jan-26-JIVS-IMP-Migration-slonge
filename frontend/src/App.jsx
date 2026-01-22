@@ -15,6 +15,7 @@ import Dashboards from './pages/Dashboards'
 import DashboardView from './pages/DashboardView'
 import Visualizations from './pages/Visualizations'
 import TestRules from './pages/TestRules'
+import DataQualityTrends from './pages/DataQualityTrends'
 import Comparison from './pages/Comparison'
 import Settings from './pages/Settings'
 import AdminUsers from './pages/AdminUsers'
@@ -116,6 +117,7 @@ function App() {
         <Route path="/dashboards/:id" element={<DashboardView />} />
         <Route path="/visualizations" element={<Visualizations />} />
         <Route path="/test-rules" element={<TestRules />} />
+        <Route path="/trends" element={<DataQualityTrends />} />
         <Route path="/comparison" element={<Comparison />} />
         <Route path="/settings" element={<Settings />} />
         <Route

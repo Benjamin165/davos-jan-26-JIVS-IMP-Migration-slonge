@@ -23,7 +23,9 @@ import {
   Trash2,
   GripVertical,
   Save,
-  Check
+  Check,
+  Sparkles,
+  AreaChart
 } from 'lucide-react'
 import {
   BarChart,
@@ -36,7 +38,11 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer
+  ResponsiveContainer,
+  LineChart as RechartsLineChart,
+  Line,
+  AreaChart as RechartsAreaChart,
+  Area
 } from 'recharts'
 import api from '../utils/api'
 import { cn } from '../utils/cn'
@@ -49,6 +55,46 @@ const COLORS = {
   pending: '#3B82F6',
   warning: '#F97316'
 }
+
+// Default widgets for new dashboards
+const DEFAULT_WIDGETS = [
+  {
+    id: 'default-summary-total',
+    type: 'summary-card',
+    isDefault: true,
+    config: { metric: 'total', title: 'Total Objects', color: 'primary' }
+  },
+  {
+    id: 'default-summary-success',
+    type: 'summary-card',
+    isDefault: true,
+    config: { metric: 'successRate', title: 'Success Rate', color: 'success' }
+  },
+  {
+    id: 'default-summary-failed',
+    type: 'summary-card',
+    isDefault: true,
+    config: { metric: 'failed', title: 'Failed Items', color: 'error' }
+  },
+  {
+    id: 'default-summary-warnings',
+    type: 'summary-card',
+    isDefault: true,
+    config: { metric: 'warnings', title: 'Warnings', color: 'warning' }
+  },
+  {
+    id: 'default-chart-status',
+    type: 'bar-chart-large',
+    isDefault: true,
+    config: { dataSource: 'status', title: 'Status Distribution' }
+  },
+  {
+    id: 'default-chart-severity',
+    type: 'pie-chart-large',
+    isDefault: true,
+    config: { dataSource: 'severity', title: 'Severity Breakdown' }
+  }
+]
 
 // Widget Types Library
 const WIDGET_TYPES = [
@@ -98,13 +144,35 @@ const WIDGET_TYPES = [
 function WidgetLibraryModal({ isOpen, onClose, onAddWidget }) {
   const [selectedWidget, setSelectedWidget] = useState(null)
   const [widgetConfig, setWidgetConfig] = useState({})
-  const [step, setStep] = useState('select') // 'select' or 'configure'
+  const [step, setStep] = useState('select') // 'select', 'configure', or 'visualizations'
+  const [savedVisualizations, setSavedVisualizations] = useState([])
+  const [loadingVisualizations, setLoadingVisualizations] = useState(false)
+
+  // Fetch saved visualizations when entering visualization selection
+  const fetchVisualizations = async () => {
+    setLoadingVisualizations(true)
+    try {
+      // Fetch both user visualizations and templates
+      const [vizResponse, templateResponse] = await Promise.all([
+        api.get('/visualizations'),
+        api.get('/visualizations/templates')
+      ])
+      const userVizs = (vizResponse.data.visualizations || []).map(v => ({ ...v, source: 'user' }))
+      const templates = (templateResponse.data.templates || []).map(t => ({ ...t, source: 'template' }))
+      setSavedVisualizations([...userVizs, ...templates])
+    } catch (err) {
+      console.error('Failed to fetch visualizations:', err)
+    } finally {
+      setLoadingVisualizations(false)
+    }
+  }
 
   useEffect(() => {
     if (!isOpen) {
       setSelectedWidget(null)
       setWidgetConfig({})
       setStep('select')
+      setSavedVisualizations([])
     }
   }, [isOpen])
 
@@ -123,9 +191,32 @@ function WidgetLibraryModal({ isOpen, onClose, onAddWidget }) {
     onClose()
   }
 
+  const handleAddVisualization = (visualization) => {
+    onAddWidget({
+      id: Date.now().toString(),
+      type: 'saved-visualization',
+      config: {
+        visualizationId: visualization.id,
+        title: visualization.name,
+        chartType: visualization.type,
+        vizConfig: visualization.config
+      }
+    })
+    onClose()
+  }
+
   const handleBack = () => {
-    setStep('select')
-    setSelectedWidget(null)
+    if (step === 'visualizations') {
+      setStep('select')
+    } else {
+      setStep('select')
+      setSelectedWidget(null)
+    }
+  }
+
+  const handleShowVisualizations = () => {
+    setStep('visualizations')
+    fetchVisualizations()
   }
 
   // Handle Escape key
@@ -162,7 +253,7 @@ function WidgetLibraryModal({ isOpen, onClose, onAddWidget }) {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-dark-600">
           <div className="flex items-center gap-2">
-            {step === 'configure' && (
+            {(step === 'configure' || step === 'visualizations') && (
               <button
                 onClick={handleBack}
                 className="p-1 rounded hover:bg-dark-700 transition-colors"
@@ -171,7 +262,9 @@ function WidgetLibraryModal({ isOpen, onClose, onAddWidget }) {
               </button>
             )}
             <h2 className="text-lg font-semibold">
-              {step === 'select' ? 'Add Widget' : `Configure ${selectedWidget?.name}`}
+              {step === 'select' ? 'Add Widget' :
+               step === 'visualizations' ? 'Select Saved Visualization' :
+               `Configure ${selectedWidget?.name}`}
             </h2>
           </div>
           <button
@@ -189,6 +282,36 @@ function WidgetLibraryModal({ isOpen, onClose, onAddWidget }) {
               <p className="text-gray-400 text-sm">
                 Select a widget type to add to your dashboard
               </p>
+
+              {/* Saved Visualizations Option */}
+              <button
+                onClick={handleShowVisualizations}
+                className="w-full p-4 rounded-xl border border-[#2E5BFF]/30 bg-[#2E5BFF]/10 hover:border-[#2E5BFF]/50 hover:bg-[#2E5BFF]/20 transition-all text-left group"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-[#2E5BFF]/20 text-[#2E5BFF] group-hover:bg-[#2E5BFF]/30 transition-colors">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-[#2E5BFF] group-hover:text-[#5B8AFF] transition-colors">
+                      Saved Visualizations
+                    </h3>
+                    <p className="text-sm text-gray-400 mt-1">
+                      Add custom visualizations you've created with AI or manually saved
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-dark-600" />
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="bg-dark-800 px-2 text-gray-500">or create a new widget</span>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 {WIDGET_TYPES.map((widget) => {
                   const Icon = widget.icon
@@ -215,6 +338,118 @@ function WidgetLibraryModal({ isOpen, onClose, onAddWidget }) {
                   )
                 })}
               </div>
+            </div>
+          ) : step === 'visualizations' ? (
+            <div className="space-y-4">
+              <p className="text-gray-400 text-sm">
+                Select a saved visualization to add to your dashboard
+              </p>
+              {loadingVisualizations ? (
+                <div className="text-center py-8">
+                  <RefreshCw className="w-8 h-8 text-[#2E5BFF] animate-spin mx-auto mb-4" />
+                  <p className="text-gray-400">Loading visualizations...</p>
+                </div>
+              ) : savedVisualizations.length === 0 ? (
+                <div className="text-center py-8">
+                  <Sparkles className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+                  <p className="text-white font-medium mb-2">No saved visualizations</p>
+                  <p className="text-gray-400 text-sm">
+                    Create visualizations in the Visualizations page using AI or manual configuration
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* User Visualizations */}
+                  {savedVisualizations.filter(v => v.source === 'user').length > 0 && (
+                    <div>
+                      <h4 className="text-xs uppercase tracking-wider text-gray-500 mb-2 flex items-center gap-2">
+                        <Sparkles className="w-3 h-3" />
+                        Your Visualizations
+                      </h4>
+                      <div className="grid grid-cols-1 gap-2">
+                        {savedVisualizations.filter(v => v.source === 'user').map((viz) => {
+                          const chartIcons = {
+                            bar: BarChart3,
+                            line: LineChart,
+                            pie: PieChartIcon,
+                            donut: PieChartIcon,
+                            area: AreaChart,
+                            table: Table2
+                          }
+                          const Icon = chartIcons[viz.type] || BarChart3
+                          return (
+                            <button
+                              key={viz.id}
+                              onClick={() => handleAddVisualization(viz)}
+                              className="p-3 rounded-lg border border-[#2E5BFF]/30 bg-[#2E5BFF]/5 hover:border-[#2E5BFF]/50 hover:bg-[#2E5BFF]/10 transition-all text-left group"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="p-1.5 rounded bg-[#2E5BFF]/20 text-[#2E5BFF] group-hover:bg-[#2E5BFF]/30 transition-colors">
+                                  <Icon className="w-4 h-4" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="text-sm font-medium group-hover:text-[#2E5BFF] transition-colors truncate">
+                                    {viz.name}
+                                  </h3>
+                                  <p className="text-xs text-gray-500">
+                                    {viz.type} • {viz.config?.dataSource || 'reconciliation'}
+                                  </p>
+                                </div>
+                                <Plus className="w-4 h-4 text-gray-500 group-hover:text-[#2E5BFF] transition-colors" />
+                              </div>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Template Visualizations */}
+                  {savedVisualizations.filter(v => v.source === 'template').length > 0 && (
+                    <div>
+                      <h4 className="text-xs uppercase tracking-wider text-gray-500 mb-2 flex items-center gap-2">
+                        <Database className="w-3 h-3" />
+                        Template Library
+                      </h4>
+                      <div className="grid grid-cols-1 gap-2">
+                        {savedVisualizations.filter(v => v.source === 'template').map((viz) => {
+                          const chartIcons = {
+                            bar: BarChart3,
+                            line: LineChart,
+                            pie: PieChartIcon,
+                            donut: PieChartIcon,
+                            area: AreaChart,
+                            table: Table2
+                          }
+                          const Icon = chartIcons[viz.type] || BarChart3
+                          return (
+                            <button
+                              key={viz.id}
+                              onClick={() => handleAddVisualization(viz)}
+                              className="p-3 rounded-lg border border-dark-600 hover:border-primary-500/50 hover:bg-dark-700/50 transition-all text-left group"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="p-1.5 rounded bg-primary-500/20 text-primary-400 group-hover:bg-primary-500/30 transition-colors">
+                                  <Icon className="w-4 h-4" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="text-sm font-medium group-hover:text-primary-400 transition-colors truncate">
+                                    {viz.name}
+                                  </h3>
+                                  <p className="text-xs text-gray-500">
+                                    {viz.type} • {viz.config?.dataSource || 'reconciliation'}
+                                  </p>
+                                </div>
+                                <Plus className="w-4 h-4 text-gray-500 group-hover:text-primary-400 transition-colors" />
+                              </div>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
@@ -391,6 +626,270 @@ function SkeletonCard() {
         <div className="w-12 h-12 bg-dark-700 rounded-lg" />
       </div>
     </div>
+  )
+}
+
+// Visualization colors
+const VIZ_COLORS = ['#2E5BFF', '#22C55E', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16']
+
+// Saved Visualization Widget - renders custom visualizations from the Visualizations page
+function SavedVisualizationWidget({ widget, onRemove, onDragStart, onDragOver, onDrop, isDragging }) {
+  const [chartData, setChartData] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  const { title, chartType, vizConfig } = widget.config
+
+  // Fetch visualization data based on config
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const { dataSource, groupBy, filter } = vizConfig || {}
+        let transformedData = []
+
+        if (dataSource === 'test_rules') {
+          // Fetch test rules data
+          const response = await api.get('/test-rules/summary')
+          const summary = response.data
+
+          if (groupBy === 'status') {
+            transformedData = [
+              { name: 'Pass', value: summary.passed || 0 },
+              { name: 'Fail', value: summary.failed || 0 }
+            ].filter(d => d.value > 0)
+          } else if (groupBy === 'object_name') {
+            // Fetch grouped by object
+            const objResponse = await api.get('/test-rules?limit=100')
+            const items = objResponse.data.data || []
+            const grouped = items.reduce((acc, item) => {
+              const key = item.object_name || 'Unknown'
+              acc[key] = (acc[key] || 0) + (item.fail_count || 0)
+              return acc
+            }, {})
+            transformedData = Object.entries(grouped)
+              .map(([name, value]) => ({ name, value }))
+              .sort((a, b) => b.value - a.value)
+              .slice(0, 10)
+          } else {
+            // Default grouping
+            const objResponse = await api.get('/test-rules?limit=100')
+            const items = objResponse.data.data || []
+            const grouped = items.reduce((acc, item) => {
+              const key = item[groupBy] || 'Unknown'
+              acc[key] = (acc[key] || 0) + 1
+              return acc
+            }, {})
+            transformedData = Object.entries(grouped)
+              .map(([name, value]) => ({ name, value }))
+              .sort((a, b) => b.value - a.value)
+              .slice(0, 10)
+          }
+        } else {
+          // Fetch reconciliation stats - this endpoint provides pre-grouped data
+          const response = await api.get('/reconciliation/stats')
+          const stats = response.data
+
+          if (groupBy === 'load_status') {
+            transformedData = (stats.byStatus || [])
+              .map(item => ({ name: item.status || 'Unknown', value: item.count }))
+              .filter(d => d.value > 0)
+          } else if (groupBy === 'severity') {
+            transformedData = (stats.bySeverity || [])
+              .map(item => ({ name: item.severity || 'Unknown', value: item.count }))
+              .filter(d => d.value > 0)
+          } else if (groupBy === 'phase') {
+            transformedData = (stats.byPhase || [])
+              .map(item => ({ name: `Phase ${item.phase}`, value: item.count }))
+              .slice(0, 10)
+          } else if (groupBy === 'source_object') {
+            // Need to fetch grouped data for source_object
+            const objResponse = await api.get('/reconciliation?limit=500')
+            const items = objResponse.data.data || []
+            const grouped = items.reduce((acc, item) => {
+              const key = item.source_object || 'Unknown'
+              acc[key] = (acc[key] || 0) + 1
+              return acc
+            }, {})
+            transformedData = Object.entries(grouped)
+              .map(([name, value]) => ({ name, value }))
+              .sort((a, b) => b.value - a.value)
+              .slice(0, 10)
+          } else {
+            // Default to status
+            transformedData = (stats.byStatus || [])
+              .map(item => ({ name: item.status || 'Unknown', value: item.count }))
+              .filter(d => d.value > 0)
+          }
+
+          // Apply filter if specified
+          if (filter?.field && filter?.value && transformedData.length > 0) {
+            transformedData = transformedData.filter(d =>
+              d.name.toLowerCase() === filter.value.toLowerCase()
+            )
+          }
+        }
+
+        setChartData(transformedData)
+      } catch (err) {
+        console.error('Failed to fetch visualization data:', err)
+        setError('Failed to load data')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [vizConfig])
+
+  const renderChart = () => {
+    if (isLoading) {
+      return (
+        <div className="h-full flex items-center justify-center">
+          <RefreshCw className="w-6 h-6 text-[#2E5BFF] animate-spin" />
+        </div>
+      )
+    }
+
+    if (error || !chartData || chartData.length === 0) {
+      return (
+        <div className="h-full flex items-center justify-center text-gray-500 text-sm">
+          {error || 'No data available'}
+        </div>
+      )
+    }
+
+    switch (chartType) {
+      case 'bar':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="name" tick={{ fill: '#9CA3AF', fontSize: 9 }} interval={0} angle={-45} textAnchor="end" height={50} />
+              <YAxis tick={{ fill: '#9CA3AF', fontSize: 9 }} />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                {chartData.map((_, index) => (
+                  <Cell key={`cell-${index}`} fill={VIZ_COLORS[index % VIZ_COLORS.length]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        )
+
+      case 'line':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <RechartsLineChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="name" tick={{ fill: '#9CA3AF', fontSize: 9 }} />
+              <YAxis tick={{ fill: '#9CA3AF', fontSize: 9 }} />
+              <Tooltip content={<CustomTooltip />} />
+              <Line type="monotone" dataKey="value" stroke="#2E5BFF" strokeWidth={2} dot={{ fill: '#2E5BFF' }} />
+            </RechartsLineChart>
+          </ResponsiveContainer>
+        )
+
+      case 'area':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <RechartsAreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="name" tick={{ fill: '#9CA3AF', fontSize: 9 }} />
+              <YAxis tick={{ fill: '#9CA3AF', fontSize: 9 }} />
+              <Tooltip content={<CustomTooltip />} />
+              <Area type="monotone" dataKey="value" stroke="#2E5BFF" fill="#2E5BFF" fillOpacity={0.3} />
+            </RechartsAreaChart>
+          </ResponsiveContainer>
+        )
+
+      case 'pie':
+      case 'donut':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                innerRadius={chartType === 'donut' ? 30 : 0}
+                outerRadius={55}
+                dataKey="value"
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                labelLine={{ stroke: '#9CA3AF', strokeWidth: 1 }}
+              >
+                {chartData.map((_, index) => (
+                  <Cell key={`cell-${index}`} fill={VIZ_COLORS[index % VIZ_COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+            </PieChart>
+          </ResponsiveContainer>
+        )
+
+      case 'table':
+        return (
+          <div className="overflow-auto h-full">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-dark-600">
+                  <th className="text-left py-1 px-2 text-gray-400">Name</th>
+                  <th className="text-right py-1 px-2 text-gray-400">Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                {chartData.map((row, i) => (
+                  <tr key={i} className="border-b border-dark-700">
+                    <td className="py-1 px-2 text-white">{row.name}</td>
+                    <td className="py-1 px-2 text-right text-gray-300">{row.value?.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+
+      default:
+        return <div className="text-gray-500 text-center">Unknown chart type</div>
+    }
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      draggable
+      onDragStart={(e) => onDragStart(e, widget.id)}
+      onDragOver={onDragOver}
+      onDrop={(e) => onDrop(e, widget.id)}
+      className={cn(
+        "card p-4 relative group cursor-move col-span-1",
+        isDragging && 'opacity-50 ring-2 ring-[#2E5BFF]'
+      )}
+    >
+      <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing">
+        <GripVertical className="w-4 h-4 text-gray-400" />
+      </div>
+      <button
+        onClick={() => onRemove(widget.id)}
+        className="absolute top-2 right-2 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-dark-700 transition-all z-10"
+        title="Remove widget"
+      >
+        <X className="w-4 h-4" />
+      </button>
+
+      <div className="flex items-center gap-2 mb-3">
+        <div className="p-1.5 rounded bg-[#2E5BFF]/20">
+          <Sparkles className="w-3 h-3 text-[#2E5BFF]" />
+        </div>
+        <h3 className="text-sm font-semibold truncate flex-1">{title}</h3>
+      </div>
+
+      <div className="h-40">
+        {renderChart()}
+      </div>
+    </motion.div>
   )
 }
 
@@ -607,6 +1106,129 @@ function DashboardWidget({ widget, summary, onRemove, onDragStart, onDragOver, o
     )
   }
 
+  // Large bar chart (for default dashboard layout)
+  if (widget.type === 'bar-chart-large') {
+    const chartData = [
+      { name: 'Completed', value: summary?.completed || 0, fill: COLORS.completed },
+      { name: 'Running', value: summary?.running || 0, fill: COLORS.running },
+      { name: 'Pending', value: summary?.pending || 0, fill: COLORS.pending },
+      { name: 'Failed', value: summary?.failed || 0, fill: COLORS.failed },
+      { name: 'Warning', value: summary?.warnings || 0, fill: COLORS.warning }
+    ]
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        draggable
+        onDragStart={(e) => onDragStart(e, widget.id)}
+        onDragOver={onDragOver}
+        onDrop={(e) => onDrop(e, widget.id)}
+        className={cn("card p-6 relative group cursor-move col-span-2", isDragging && 'opacity-50 ring-2 ring-primary-500')}
+      >
+        <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing">
+          <GripVertical className="w-4 h-4 text-gray-400" />
+        </div>
+        <button
+          onClick={() => onRemove(widget.id)}
+          className="absolute top-2 right-2 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-dark-700 transition-all z-10"
+          title="Remove widget"
+        >
+          <X className="w-4 h-4" />
+        </button>
+        <h3 className="text-lg font-semibold mb-4">{widget.config.title}</h3>
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="name" tick={{ fill: '#9CA3AF', fontSize: 12 }} />
+              <YAxis tick={{ fill: '#9CA3AF', fontSize: 12 }} />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend wrapperStyle={{ color: '#9CA3AF' }} />
+              <Bar dataKey="value" name="Count" radius={[4, 4, 0, 0]}>
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </motion.div>
+    )
+  }
+
+  // Large pie chart (for default dashboard layout)
+  if (widget.type === 'pie-chart-large') {
+    const pieData = [
+      { name: 'Completed', value: summary?.completed || 0 },
+      { name: 'Running', value: summary?.running || 0 },
+      { name: 'Pending', value: summary?.pending || 0 },
+      { name: 'Failed', value: summary?.failed || 0 },
+      { name: 'Warning', value: summary?.warnings || 0 }
+    ].filter(item => item.value > 0)
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        draggable
+        onDragStart={(e) => onDragStart(e, widget.id)}
+        onDragOver={onDragOver}
+        onDrop={(e) => onDrop(e, widget.id)}
+        className={cn("card p-6 relative group cursor-move col-span-2", isDragging && 'opacity-50 ring-2 ring-primary-500')}
+      >
+        <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing">
+          <GripVertical className="w-4 h-4 text-gray-400" />
+        </div>
+        <button
+          onClick={() => onRemove(widget.id)}
+          className="absolute top-2 right-2 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-dark-700 transition-all z-10"
+          title="Remove widget"
+        >
+          <X className="w-4 h-4" />
+        </button>
+        <h3 className="text-lg font-semibold mb-4">{widget.config.title}</h3>
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
+                innerRadius={40}
+                outerRadius={80}
+                paddingAngle={2}
+                dataKey="value"
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                labelLine={{ stroke: '#9CA3AF' }}
+              >
+                <Cell fill={COLORS.completed} />
+                <Cell fill={COLORS.running} />
+                <Cell fill={COLORS.pending} />
+                <Cell fill={COLORS.failed} />
+                <Cell fill={COLORS.warning} />
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+              <Legend wrapperStyle={{ color: '#9CA3AF' }} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </motion.div>
+    )
+  }
+
+  // Saved visualization widget
+  if (widget.type === 'saved-visualization') {
+    return (
+      <SavedVisualizationWidget
+        widget={widget}
+        onRemove={onRemove}
+        onDragStart={onDragStart}
+        onDragOver={onDragOver}
+        onDrop={onDrop}
+        isDragging={isDragging}
+      />
+    )
+  }
+
   // Default fallback
   return (
     <div className="card p-6 text-center text-gray-400">
@@ -672,8 +1294,14 @@ export default function DashboardView() {
       ])
       setDashboard(dashboardRes.data)
       setSummary(summaryRes.data)
-      // Load widgets from dashboard layout
-      setWidgets(dashboardRes.data.layout || [])
+      // Load widgets from dashboard layout, or use defaults if empty
+      const loadedLayout = dashboardRes.data.layout || []
+      if (loadedLayout.length === 0) {
+        // Initialize with default widgets for new/empty dashboards
+        setWidgets([...DEFAULT_WIDGETS])
+      } else {
+        setWidgets(loadedLayout)
+      }
       setError(null)
     } catch (err) {
       setError('Failed to load dashboard')
@@ -831,10 +1459,10 @@ export default function DashboardView() {
         )}
       </AnimatePresence>
 
-      {/* Custom Widgets */}
-      {widgets.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {widgets.map((widget) => (
+      {/* All Widgets (including defaults) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {widgets.length > 0 ? (
+          widgets.map((widget) => (
             <DashboardWidget
               key={widget.id}
               widget={widget}
@@ -845,147 +1473,14 @@ export default function DashboardView() {
               onDrop={handleDrop}
               isDragging={draggedWidget === widget.id}
             />
-          ))}
-        </div>
-      )}
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {summary ? (
-          <>
-            <SummaryCard
-              title="Total Objects"
-              value={summary.total?.toLocaleString() || '0'}
-              icon={Database}
-              color="primary"
-              delay={0.1}
-            />
-            <SummaryCard
-              title="Success Rate"
-              value={`${summary.successRate || 0}%`}
-              icon={CheckCircle}
-              trend="+2.5% from last run"
-              color="success"
-              delay={0.2}
-            />
-            <SummaryCard
-              title="Failed Items"
-              value={summary.failed?.toLocaleString() || '0'}
-              icon={XCircle}
-              color="error"
-              delay={0.3}
-            />
-            <SummaryCard
-              title="Warnings"
-              value={summary.warnings?.toLocaleString() || '0'}
-              icon={AlertTriangle}
-              color="warning"
-              delay={0.4}
-            />
-          </>
+          ))
         ) : (
-          <>
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-          </>
+          <div className="col-span-4 text-center py-12 text-gray-400">
+            <Plus className="w-12 h-12 mx-auto mb-4 opacity-50" />
+            <p className="text-lg font-medium mb-2">No widgets yet</p>
+            <p className="text-sm mb-4">Click "Add Widget" to start customizing your dashboard</p>
+          </div>
         )}
-      </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="card p-6"
-        >
-          <h3 className="text-lg font-semibold mb-4">Status Distribution</h3>
-          <div className="h-64">
-            {summary ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={[
-                    { name: 'Completed', value: summary.completed || 0, fill: COLORS.completed },
-                    { name: 'Running', value: summary.running || 0, fill: COLORS.running },
-                    { name: 'Pending', value: summary.pending || 0, fill: COLORS.pending },
-                    { name: 'Failed', value: summary.failed || 0, fill: COLORS.failed },
-                    { name: 'Warning', value: summary.warnings || 0, fill: COLORS.warning }
-                  ]}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey="name" tick={{ fill: '#9CA3AF', fontSize: 12 }} />
-                  <YAxis tick={{ fill: '#9CA3AF', fontSize: 12 }} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend wrapperStyle={{ color: '#9CA3AF' }} />
-                  <Bar dataKey="value" name="Count" radius={[4, 4, 0, 0]}>
-                    {[
-                      { name: 'Completed', fill: COLORS.completed },
-                      { name: 'Running', fill: COLORS.running },
-                      { name: 'Pending', fill: COLORS.pending },
-                      { name: 'Failed', fill: COLORS.failed },
-                      { name: 'Warning', fill: COLORS.warning }
-                    ].map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-gray-400">
-                <div className="animate-pulse">Loading chart...</div>
-              </div>
-            )}
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="card p-6"
-        >
-          <h3 className="text-lg font-semibold mb-4">Severity Breakdown</h3>
-          <div className="h-64">
-            {summary ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={[
-                      { name: 'Completed', value: summary.completed || 0 },
-                      { name: 'Running', value: summary.running || 0 },
-                      { name: 'Pending', value: summary.pending || 0 },
-                      { name: 'Failed', value: summary.failed || 0 },
-                      { name: 'Warning', value: summary.warnings || 0 }
-                    ].filter(item => item.value > 0)}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={80}
-                    paddingAngle={2}
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    labelLine={{ stroke: '#9CA3AF' }}
-                  >
-                    <Cell fill={COLORS.completed} />
-                    <Cell fill={COLORS.running} />
-                    <Cell fill={COLORS.pending} />
-                    <Cell fill={COLORS.failed} />
-                    <Cell fill={COLORS.warning} />
-                  </Pie>
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend wrapperStyle={{ color: '#9CA3AF' }} />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-gray-400">
-                <div className="animate-pulse">Loading chart...</div>
-              </div>
-            )}
-          </div>
-        </motion.div>
       </div>
 
       {/* Dashboard Info */}

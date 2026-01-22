@@ -427,7 +427,7 @@ function SortableHeader({ label, column, currentSort, onSort }) {
 }
 
 // Data Table component - JIVS styled
-function DataTable({ data, pagination, isLoading, onPageChange, onSearch, onFilterChange, onClearFilters, onSort, onRowClick, filters, searchTerm, sort }) {
+function DataTable({ data, pagination, isLoading, isInitialLoad, onPageChange, onSearch, onFilterChange, onClearFilters, onSort, onRowClick, filters, searchTerm, sort }) {
   const [searchValue, setSearchValue] = useState(searchTerm || '')
 
   // Sync local search value with parent state
@@ -455,7 +455,8 @@ function DataTable({ data, pagination, isLoading, onPageChange, onSearch, onFilt
 
   const hasActiveFilters = filters?.status || filters?.severity || searchValue
 
-  if (isLoading) {
+  // Only show full skeleton on initial load, not when filtering/paginating
+  if (isInitialLoad) {
     return (
       <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-md p-6">
         <div className="animate-pulse space-y-4">
@@ -542,7 +543,13 @@ function DataTable({ data, pagination, isLoading, onPageChange, onSearch, onFilt
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto relative">
+        {/* Loading overlay when filtering/paginating */}
+        {isLoading && (
+          <div className="absolute inset-0 bg-[#1A1A1A]/70 flex items-center justify-center z-10">
+            <RefreshCw className="w-6 h-6 text-[#2E5BFF] animate-spin" />
+          </div>
+        )}
         <table className="w-full text-sm">
           <thead>
             <tr>
@@ -554,7 +561,7 @@ function DataTable({ data, pagination, isLoading, onPageChange, onSearch, onFilt
               <SortableHeader label="Phase" column="phase" currentSort={sort} onSort={handleSort} />
             </tr>
           </thead>
-          <tbody>
+          <tbody className={cn(isLoading && 'opacity-50 pointer-events-none')}>
             {data && data.length > 0 ? (
               data.map((row) => (
                 <tr
@@ -637,6 +644,7 @@ export default function Dashboard() {
   const [pagination, setPagination] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [tableLoading, setTableLoading] = useState(true)
+  const [isInitialTableLoad, setIsInitialTableLoad] = useState(true)
   const [error, setError] = useState(null)
   const [currentPage, setCurrentPage] = useState(initialPage)
   const [searchTerm, setSearchTerm] = useState(initialSearch)
@@ -724,6 +732,7 @@ export default function Dashboard() {
       const response = await api.get(`/reconciliation?${params}`)
       setTableData(response.data.data)
       setPagination(response.data.pagination)
+      setIsInitialTableLoad(false)
     } catch (err) {
       console.error('Failed to load table data', err)
     } finally {
@@ -1102,6 +1111,7 @@ export default function Dashboard() {
         data={tableData}
         pagination={pagination}
         isLoading={tableLoading}
+        isInitialLoad={isInitialTableLoad}
         onPageChange={handlePageChange}
         onSearch={handleSearch}
         onFilterChange={handleFilterChange}

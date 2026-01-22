@@ -156,6 +156,18 @@ export function initializeDatabase() {
     )
   `);
 
+  // App settings table (for API keys, feature flags, etc.)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS app_settings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      key TEXT UNIQUE NOT NULL,
+      value TEXT,
+      encrypted INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
   // Create indexes for performance
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_reconciliation_status ON reconciliation_data(load_status);
@@ -163,6 +175,8 @@ export function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS idx_reconciliation_source ON reconciliation_data(source_object);
     CREATE INDEX IF NOT EXISTS idx_test_rules_status ON test_rules_data(status);
     CREATE INDEX IF NOT EXISTS idx_test_rules_type ON test_rules_data(rule_type);
+    CREATE INDEX IF NOT EXISTS idx_test_rules_created_at ON test_rules_data(created_at);
+    CREATE INDEX IF NOT EXISTS idx_test_rules_object_created ON test_rules_data(object_name, created_at);
     CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_read);
     CREATE INDEX IF NOT EXISTS idx_dashboards_user ON dashboards(user_id);
     CREATE INDEX IF NOT EXISTS idx_visualizations_user ON visualizations(user_id);

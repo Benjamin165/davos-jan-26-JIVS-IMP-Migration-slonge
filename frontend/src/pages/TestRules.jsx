@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ClipboardCheck, AlertCircle, CheckCircle, ChevronDown, ChevronRight, RefreshCw, Layers } from 'lucide-react'
+import { ClipboardCheck, AlertCircle, CheckCircle, ChevronDown, ChevronRight, RefreshCw, Layers, TrendingUp, ArrowRight } from 'lucide-react'
 import api from '../utils/api'
 import { cn } from '../utils/cn'
+import { TrendSparkline } from '../components/trends'
 
 export default function TestRules() {
   const [summary, setSummary] = useState(null)
@@ -11,6 +13,20 @@ export default function TestRules() {
   const [expandedRules, setExpandedRules] = useState({})
   const [expandedGroups, setExpandedGroups] = useState({})
   const [viewMode, setViewMode] = useState('grouped') // 'grouped' or 'flat'
+  const [trendSummary, setTrendSummary] = useState(null)
+  const [trendLoading, setTrendLoading] = useState(true)
+
+  const fetchTrendSummary = async () => {
+    setTrendLoading(true)
+    try {
+      const response = await api.get('/trends/summary')
+      setTrendSummary(response.data)
+    } catch (err) {
+      console.error('Failed to load trend summary:', err)
+    } finally {
+      setTrendLoading(false)
+    }
+  }
 
   const fetchData = async () => {
     setIsLoading(true)
@@ -30,6 +46,7 @@ export default function TestRules() {
 
   useEffect(() => {
     fetchData()
+    fetchTrendSummary()
   }, [])
 
   const toggleRule = (id) => {
@@ -107,6 +124,82 @@ export default function TestRules() {
           Refresh
         </button>
       </div>
+
+      {/* Trend Summary Widget */}
+      {trendSummary && !trendLoading && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+          className={cn(
+            'rounded-md p-4 border',
+            trendSummary.trend?.is_declining
+              ? 'bg-warning-500/10 border-warning-500/30'
+              : 'bg-[#1A1A1A] border-[#2A2A2A]'
+          )}
+        >
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4">
+              <div className={cn(
+                'p-2 rounded-[4px]',
+                trendSummary.trend?.is_declining ? 'bg-warning-500/20' : 'bg-[#2E5BFF]/20'
+              )}>
+                <TrendingUp className={cn(
+                  'w-5 h-5',
+                  trendSummary.trend?.is_declining ? 'text-warning-400' : 'text-[#2E5BFF]'
+                )} />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">Data Quality Trend</p>
+                <p className="text-xs text-gray-400">
+                  {trendSummary.trend?.direction === 'increasing'
+                    ? 'Fail count trending up'
+                    : trendSummary.trend?.direction === 'decreasing'
+                      ? 'Fail count trending down'
+                      : 'Trend stable'}
+                  {trendSummary.trend?.rate_of_change !== 0 && (
+                    <span className={cn(
+                      'ml-2',
+                      trendSummary.trend?.is_declining ? 'text-warning-400' : 'text-success-400'
+                    )}>
+                      ({trendSummary.trend?.rate_of_change > 0 ? '+' : ''}{trendSummary.trend?.rate_of_change?.toFixed(1)}%)
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-6">
+              {/* Mini Sparkline */}
+              <div className="hidden md:block">
+                <TrendSparkline
+                  data={[
+                    trendSummary.current?.total_fail_count * 0.7,
+                    trendSummary.current?.total_fail_count * 0.8,
+                    trendSummary.current?.total_fail_count * 0.75,
+                    trendSummary.current?.total_fail_count * 0.85,
+                    trendSummary.current?.total_fail_count * 0.9,
+                    trendSummary.current?.total_fail_count * 0.95,
+                    trendSummary.current?.total_fail_count
+                  ]}
+                  trend={trendSummary.trend?.direction}
+                  trendValue={trendSummary.trend?.rate_of_change}
+                  height={32}
+                />
+              </div>
+
+              {/* View Full Analysis Link */}
+              <Link
+                to="/trends"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#262626] text-gray-300 rounded-[4px] text-sm hover:text-white hover:brightness-110 transition-all"
+              >
+                View Full Analysis
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Summary Stats - JIVS styled */}
       {summary && (

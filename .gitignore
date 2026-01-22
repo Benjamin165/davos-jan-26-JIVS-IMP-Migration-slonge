@@ -19,7 +19,11 @@ out/
 
 # Database
 backend/data/*.sqlite
+backend/data/*.sqlite-shm
+backend/data/*.sqlite-wal
 *.sqlite
+*.sqlite-shm
+*.sqlite-wal
 !features.db
 
 # Logs
@@ -46,6 +50,14 @@ coverage/
 *.pem
 .vercel
 .turbo
+nul
+
+# Claude Code
+.agent.lock
+.claude/settings.local.json
+
+# Playwright screenshots
+.playwright-mcp/
 
 # Lock files (optional - remove if you want to commit them)
 # package-lock.json

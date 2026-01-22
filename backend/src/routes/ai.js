@@ -1,6 +1,18 @@
 import express from 'express';
 import db from '../models/database.js';
 import { authenticateToken } from '../middleware/auth.js';
+import {
+  generatePredictions,
+  generateVisualizationConfig,
+  getApiKey,
+  saveApiKey,
+  validateApiKey
+} from '../services/openaiService.js';
+import {
+  calculateTrend,
+  getDateGroupExpression,
+  getDateFilterExpression
+} from '../services/trendAnalyzer.js';
 
 const router = express.Router();
 
@@ -141,8 +153,96 @@ router.get('/recommendations', authenticateToken, (req, res, next) => {
   }
 });
 
+/**
+ * Fallback keyword-based parsing when OpenAI is not configured
+ */
+function parseVisualizationWithKeywords(prompt) {
+  const promptLower = prompt.toLowerCase();
+
+  let chartType = 'bar';
+  let dataSource = 'reconciliation';
+  let groupBy = 'load_status';
+  let filterField = null;
+  let filterValue = null;
+
+  // Detect chart type
+  if (promptLower.includes('pie') || promptLower.includes('circle') || promptLower.includes('donut')) {
+    chartType = promptLower.includes('donut') ? 'donut' : 'pie';
+  } else if (promptLower.includes('line') || promptLower.includes('trend') || promptLower.includes('over time')) {
+    chartType = 'line';
+  } else if (promptLower.includes('area')) {
+    chartType = 'area';
+  } else if (promptLower.includes('table') || promptLower.includes('list')) {
+    chartType = 'table';
+  }
+
+  // Detect data source
+  if (promptLower.includes('test') || promptLower.includes('rule') || promptLower.includes('validation')) {
+    dataSource = 'test_rules';
+  }
+
+  // Detect grouping
+  if (promptLower.includes('by status') || promptLower.includes('status')) {
+    groupBy = dataSource === 'test_rules' ? 'status' : 'load_status';
+  } else if (promptLower.includes('by severity') || promptLower.includes('severity')) {
+    groupBy = 'severity';
+  } else if (promptLower.includes('by type') || promptLower.includes('by object') || promptLower.includes('object')) {
+    groupBy = dataSource === 'test_rules' ? 'object_name' : 'source_object';
+  } else if (promptLower.includes('by phase') || promptLower.includes('phase')) {
+    groupBy = 'phase';
+  } else if (promptLower.includes('by category') || promptLower.includes('category')) {
+    groupBy = 'category';
+  }
+
+  // Detect filters
+  if (promptLower.includes('failed') || promptLower.includes('failure')) {
+    filterField = dataSource === 'test_rules' ? 'status' : 'load_status';
+    filterValue = dataSource === 'test_rules' ? 'fail' : 'failed';
+  } else if (promptLower.includes('critical')) {
+    filterField = 'severity';
+    filterValue = 'critical';
+  } else if (promptLower.includes('success') || promptLower.includes('passed') || promptLower.includes('completed')) {
+    filterField = dataSource === 'test_rules' ? 'status' : 'load_status';
+    filterValue = dataSource === 'test_rules' ? 'pass' : 'completed';
+  }
+
+  return {
+    chartType,
+    dataSource,
+    groupBy,
+    filter: filterField ? { field: filterField, value: filterValue } : null,
+    title: prompt.substring(0, 50),
+    reasoning: null
+  };
+}
+
+/**
+ * Fetch preview data based on visualization config
+ */
+function fetchVisualizationPreviewData(config) {
+  const { dataSource, groupBy, filter } = config;
+  const tableName = dataSource === 'test_rules' ? 'test_rules_data' : 'reconciliation_data';
+
+  let query = `SELECT ${groupBy}, COUNT(*) as count FROM ${tableName}`;
+  const params = [];
+
+  if (filter && filter.field && filter.value) {
+    query += ` WHERE ${filter.field} = ?`;
+    params.push(filter.value);
+  }
+
+  query += ` GROUP BY ${groupBy} ORDER BY count DESC LIMIT 10`;
+
+  const rawData = db.prepare(query).all(...params);
+
+  return rawData.map(row => ({
+    name: row[groupBy] || 'Unknown',
+    value: row.count
+  }));
+}
+
 // Generate visualization from natural language prompt
-router.post('/generate-visual', authenticateToken, (req, res, next) => {
+router.post('/generate-visual', authenticateToken, async (req, res, next) => {
   try {
     const { prompt } = req.body;
 
@@ -150,105 +250,55 @@ router.post('/generate-visual', authenticateToken, (req, res, next) => {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
-    const promptLower = prompt.toLowerCase();
+    // Check if OpenAI API key is configured
+    const apiKey = getApiKey();
+    let config;
+    let aiPowered = false;
 
-    // Simple NLP-like parsing for visualization generation
-    let chartType = 'bar';
-    let dataSource = 'reconciliation';
-    let groupBy = 'load_status';
-    let filterField = null;
-    let filterValue = null;
-
-    // Detect chart type
-    if (promptLower.includes('pie') || promptLower.includes('circle') || promptLower.includes('donut')) {
-      chartType = promptLower.includes('donut') ? 'donut' : 'pie';
-    } else if (promptLower.includes('line') || promptLower.includes('trend') || promptLower.includes('over time')) {
-      chartType = 'line';
-    } else if (promptLower.includes('area')) {
-      chartType = 'area';
-    } else if (promptLower.includes('table') || promptLower.includes('list')) {
-      chartType = 'table';
+    if (apiKey) {
+      // Use OpenAI for intelligent parsing
+      try {
+        config = await generateVisualizationConfig(prompt);
+        aiPowered = true;
+      } catch (aiError) {
+        console.error('OpenAI visualization generation failed, falling back to keywords:', aiError.message);
+        // Fall back to keyword parsing if OpenAI fails
+        config = parseVisualizationWithKeywords(prompt);
+      }
+    } else {
+      // Use fallback keyword-based parsing
+      config = parseVisualizationWithKeywords(prompt);
     }
 
-    // Detect data source
-    if (promptLower.includes('test') || promptLower.includes('rule') || promptLower.includes('validation')) {
-      dataSource = 'test_rules';
-    }
+    // Fetch actual preview data
+    const previewData = fetchVisualizationPreviewData(config);
 
-    // Detect grouping
-    if (promptLower.includes('by status')) {
-      groupBy = dataSource === 'test_rules' ? 'status' : 'load_status';
-    } else if (promptLower.includes('by severity')) {
-      groupBy = 'severity';
-    } else if (promptLower.includes('by type') || promptLower.includes('by object')) {
-      groupBy = dataSource === 'test_rules' ? 'rule_type' : 'object_type';
-    } else if (promptLower.includes('by phase')) {
-      groupBy = 'phase';
-    } else if (promptLower.includes('by category')) {
-      groupBy = 'category';
-    }
-
-    // Detect filters
-    if (promptLower.includes('failed') || promptLower.includes('failure')) {
-      filterField = dataSource === 'test_rules' ? 'status' : 'load_status';
-      filterValue = dataSource === 'test_rules' ? 'fail' : 'failed';
-    } else if (promptLower.includes('critical')) {
-      filterField = 'severity';
-      filterValue = 'critical';
-    } else if (promptLower.includes('success') || promptLower.includes('passed') || promptLower.includes('completed')) {
-      filterField = dataSource === 'test_rules' ? 'status' : 'load_status';
-      filterValue = dataSource === 'test_rules' ? 'pass' : 'completed';
-    }
-
-    // Generate the visualization config
+    // Build visualization config
     const visualConfig = {
-      name: `Custom: ${prompt.substring(0, 50)}`,
-      type: chartType,
+      name: aiPowered ? `AI: ${config.title}` : `Custom: ${config.title}`,
+      type: config.chartType,
       config: {
-        dataSource,
-        groupBy,
-        filter: filterField ? { field: filterField, value: filterValue } : null,
-        title: prompt,
-        colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
+        dataSource: config.dataSource,
+        groupBy: config.groupBy,
+        filter: config.filter,
+        title: config.title,
+        colors: ['#2E5BFF', '#22C55E', '#F59E0B', '#EF4444', '#8B5CF6'],
         showLegend: true,
         animate: true
       }
     };
 
-    // Actually fetch the data for preview
-    let previewData;
-    if (dataSource === 'test_rules') {
-      let query = `SELECT ${groupBy}, COUNT(*) as count FROM test_rules_data`;
-      const params = [];
-      if (filterField) {
-        query += ` WHERE ${filterField} = ?`;
-        params.push(filterValue);
-      }
-      query += ` GROUP BY ${groupBy} ORDER BY count DESC LIMIT 10`;
-      previewData = db.prepare(query).all(...params);
-    } else {
-      let query = `SELECT ${groupBy}, COUNT(*) as count FROM reconciliation_data`;
-      const params = [];
-      if (filterField) {
-        query += ` WHERE ${filterField} = ?`;
-        params.push(filterValue);
-      }
-      query += ` GROUP BY ${groupBy} ORDER BY count DESC LIMIT 10`;
-      previewData = db.prepare(query).all(...params);
-    }
-
     res.json({
-      message: 'Visualization generated successfully',
+      message: aiPowered ? 'Visualization generated with AI' : 'Visualization generated successfully',
       visualization: visualConfig,
-      previewData: previewData.map(row => ({
-        name: row[groupBy] || 'Unknown',
-        value: row.count
-      })),
+      previewData,
       interpretation: {
-        chartType,
-        dataSource,
-        groupBy,
-        filter: filterField ? `${filterField} = ${filterValue}` : 'none'
+        chartType: config.chartType,
+        dataSource: config.dataSource,
+        groupBy: config.groupBy,
+        filter: config.filter ? `${config.filter.field} = ${config.filter.value}` : 'none',
+        reasoning: config.reasoning,
+        aiPowered
       }
     });
 
@@ -265,6 +315,176 @@ router.post('/recommendations/:id/dismiss', authenticateToken, (req, res, next) 
     // In a real app, this would store dismissed recommendations per user
     // For now, just acknowledge the dismiss
     res.json({ message: 'Recommendation dismissed', id });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * POST /api/ai/predict
+ * Generate AI-powered predictions for data quality trends
+ */
+router.post('/predict', authenticateToken, async (req, res, next) => {
+  try {
+    const {
+      object_name,
+      prediction_periods = 7,
+      period_type = 'daily'
+    } = req.body;
+
+    // Check if API key is configured
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      return res.status(400).json({
+        error: 'OpenAI API key not configured',
+        code: 'API_KEY_NOT_CONFIGURED',
+        message: 'Please configure your OpenAI API key in Settings to use AI predictions.'
+      });
+    }
+
+    // Get historical data for the object or overall
+    const dateGroup = getDateGroupExpression(period_type);
+    const dateFilter = getDateFilterExpression(period_type, 30);
+
+    let whereCondition = `created_at >= ${dateFilter}`;
+    const params = [];
+
+    if (object_name) {
+      whereCondition += ' AND object_name = ?';
+      params.push(object_name);
+    }
+
+    const query = `
+      SELECT
+        ${dateGroup} as period,
+        SUM(fail_count) as fail_count,
+        SUM(pass_count) as pass_count,
+        SUM(total_count) as total_count,
+        CAST(SUM(fail_count) AS FLOAT) / NULLIF(SUM(total_count), 0) * 100 as fail_rate
+      FROM test_rules_data
+      WHERE ${whereCondition}
+      GROUP BY ${dateGroup}
+      ORDER BY period ASC
+    `;
+
+    const historicalData = db.prepare(query).all(...params);
+
+    if (historicalData.length < 3) {
+      return res.status(400).json({
+        error: 'Insufficient data',
+        code: 'INSUFFICIENT_DATA',
+        message: 'At least 3 periods of historical data are required for predictions.'
+      });
+    }
+
+    // Calculate current trend
+    const trend = calculateTrend(historicalData);
+
+    // Generate predictions using OpenAI
+    const predictions = await generatePredictions({
+      historicalData,
+      trend,
+      objectName: object_name || 'All Objects',
+      predictionPeriods: parseInt(prediction_periods),
+      periodType: period_type
+    });
+
+    res.json({
+      object_name: object_name || 'all',
+      period_type,
+      historical_periods: historicalData.length,
+      ...predictions
+    });
+
+  } catch (error) {
+    if (error.message?.includes('API key')) {
+      return res.status(401).json({
+        error: 'Invalid API key',
+        code: 'INVALID_API_KEY',
+        message: 'The configured OpenAI API key is invalid or has expired.'
+      });
+    }
+    next(error);
+  }
+});
+
+/**
+ * POST /api/ai/settings/config
+ * Save OpenAI API key
+ */
+router.post('/settings/config', authenticateToken, async (req, res, next) => {
+  try {
+    const { api_key } = req.body;
+
+    if (!api_key || api_key.trim().length === 0) {
+      return res.status(400).json({
+        error: 'API key is required'
+      });
+    }
+
+    // Validate the API key before saving
+    const isValid = await validateApiKey(api_key);
+    if (!isValid) {
+      return res.status(400).json({
+        error: 'Invalid API key',
+        message: 'The provided API key could not be validated. Please check that it is correct.'
+      });
+    }
+
+    // Save the API key
+    saveApiKey(api_key);
+
+    res.json({
+      success: true,
+      message: 'API key configured successfully'
+    });
+
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /api/ai/settings/status
+ * Check if OpenAI API key is configured
+ */
+router.get('/settings/status', authenticateToken, (req, res, next) => {
+  try {
+    const apiKey = getApiKey();
+    const isConfigured = !!apiKey;
+
+    res.json({
+      configured: isConfigured,
+      provider: 'openai',
+      model: 'gpt-4o',
+      features: {
+        predictions: isConfigured,
+        analysis: isConfigured
+      }
+    });
+
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * DELETE /api/ai/settings/config
+ * Remove OpenAI API key
+ */
+router.delete('/settings/config', authenticateToken, (req, res, next) => {
+  try {
+    // Remove the API key by saving empty value
+    const stmt = db.prepare(`
+      DELETE FROM app_settings WHERE key = 'openai_api_key'
+    `);
+    stmt.run();
+
+    res.json({
+      success: true,
+      message: 'API key removed successfully'
+    });
+
   } catch (error) {
     next(error);
   }

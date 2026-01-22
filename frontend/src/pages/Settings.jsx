@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { User, Bell, Palette, Shield, Save, Loader2, AlertTriangle, X } from 'lucide-react'
+import { User, Bell, Palette, Shield, Save, Loader2, AlertTriangle, X, Brain, CheckCircle, Eye, EyeOff, Trash2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../context/authStore'
 import { useThemeStore } from '../context/themeStore'
@@ -28,12 +28,34 @@ export default function Settings() {
   const [deleteError, setDeleteError] = useState('')
   const [isDeleting, setIsDeleting] = useState(false)
 
+  // AI Configuration state
+  const [aiApiKey, setAiApiKey] = useState('')
+  const [aiConfigured, setAiConfigured] = useState(false)
+  const [aiValidating, setAiValidating] = useState(false)
+  const [aiSaving, setAiSaving] = useState(false)
+  const [aiMessage, setAiMessage] = useState(null)
+  const [showApiKey, setShowApiKey] = useState(false)
+
   const tabs = [
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'appearance', label: 'Appearance', icon: Palette },
+    { id: 'ai', label: 'AI Configuration', icon: Brain },
     { id: 'security', label: 'Security', icon: Shield }
   ]
+
+  // Check AI configuration status on mount
+  useEffect(() => {
+    const checkAiStatus = async () => {
+      try {
+        const response = await api.get('/ai/settings/status')
+        setAiConfigured(response.data.configured)
+      } catch (err) {
+        console.error('Failed to check AI status:', err)
+      }
+    }
+    checkAiStatus()
+  }, [])
 
   const handleSaveProfile = async () => {
     setIsSaving(true)
@@ -100,6 +122,42 @@ export default function Settings() {
     setShowDeleteModal(false)
     setDeletePassword('')
     setDeleteError('')
+  }
+
+  const handleSaveAiConfig = async () => {
+    if (!aiApiKey.trim()) {
+      setAiMessage({ type: 'error', text: 'Please enter an API key' })
+      return
+    }
+
+    setAiSaving(true)
+    setAiMessage(null)
+
+    try {
+      await api.post('/ai/settings/config', { api_key: aiApiKey })
+      setAiConfigured(true)
+      setAiApiKey('')
+      setAiMessage({ type: 'success', text: 'OpenAI API key configured successfully! AI predictions are now available.' })
+    } catch (err) {
+      setAiMessage({ type: 'error', text: err.response?.data?.message || 'Failed to save API key. Please verify it is correct.' })
+    } finally {
+      setAiSaving(false)
+    }
+  }
+
+  const handleRemoveAiConfig = async () => {
+    setAiSaving(true)
+    setAiMessage(null)
+
+    try {
+      await api.delete('/ai/settings/config')
+      setAiConfigured(false)
+      setAiMessage({ type: 'success', text: 'API key removed successfully.' })
+    } catch (err) {
+      setAiMessage({ type: 'error', text: 'Failed to remove API key' })
+    } finally {
+      setAiSaving(false)
+    }
   }
 
   // Handle Escape key for modal
@@ -313,6 +371,142 @@ export default function Settings() {
                     <p className="font-medium text-white text-sm">Light</p>
                   </button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* AI Configuration Tab */}
+          {activeTab === 'ai' && (
+            <div className="space-y-5">
+              <h2 className="text-lg font-semibold text-white tracking-tight">AI Configuration</h2>
+              <p className="text-sm text-gray-400">
+                Configure OpenAI integration to enable AI-powered trend predictions and analysis.
+              </p>
+
+              {aiMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className={cn(
+                    'p-3 rounded-md',
+                    aiMessage.type === 'success'
+                      ? 'bg-success-500/20 border border-success-500/50 text-success-400'
+                      : 'bg-error-500/20 border border-error-500/50 text-error-400'
+                  )}
+                >
+                  {aiMessage.text}
+                </motion.div>
+              )}
+
+              {/* Current Status */}
+              <div className="p-4 rounded-md bg-[#111111] border border-[#2A2A2A]">
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    'p-2 rounded-[4px]',
+                    aiConfigured ? 'bg-success-500/20' : 'bg-gray-500/20'
+                  )}>
+                    {aiConfigured ? (
+                      <CheckCircle className="w-5 h-5 text-success-400" />
+                    ) : (
+                      <Brain className="w-5 h-5 text-gray-400" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-medium text-white text-sm">
+                      {aiConfigured ? 'AI Predictions Enabled' : 'AI Predictions Not Configured'}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {aiConfigured
+                        ? 'OpenAI GPT-4 is configured and ready for predictions'
+                        : 'Add your OpenAI API key to enable AI-powered trend analysis'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* API Key Input */}
+              {!aiConfigured && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                      OpenAI API Key
+                    </label>
+                    <div className="relative max-w-md">
+                      <input
+                        type={showApiKey ? 'text' : 'password'}
+                        value={aiApiKey}
+                        onChange={(e) => setAiApiKey(e.target.value)}
+                        placeholder="sk-..."
+                        className="w-full px-3 py-2 pr-10 bg-[#121212] border border-[#333] rounded-[4px] text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2E5BFF]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowApiKey(!showApiKey)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-white"
+                      >
+                        {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Get your API key from{' '}
+                      <a
+                        href="https://platform.openai.com/api-keys"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[#2E5BFF] hover:underline"
+                      >
+                        platform.openai.com
+                      </a>
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleSaveAiConfig}
+                    disabled={aiSaving || !aiApiKey.trim()}
+                    className="inline-flex items-center px-4 py-2 bg-[#2E5BFF] text-white text-sm font-medium rounded-[4px] hover:brightness-110 transition-all disabled:opacity-50"
+                  >
+                    {aiSaving ? (
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    ) : (
+                      <Save className="w-4 h-4 mr-2" />
+                    )}
+                    Save API Key
+                  </button>
+                </div>
+              )}
+
+              {/* Remove Configuration */}
+              {aiConfigured && (
+                <div>
+                  <h3 className="font-medium text-white text-sm mb-2">Manage Configuration</h3>
+                  <p className="text-xs text-gray-400 mb-4">
+                    Remove your API key to disable AI predictions. You can re-configure it anytime.
+                  </p>
+                  <button
+                    onClick={handleRemoveAiConfig}
+                    disabled={aiSaving}
+                    className="inline-flex items-center px-4 py-2 bg-[#262626] text-gray-300 text-sm font-medium rounded-[4px] hover:text-white hover:brightness-110 transition-all disabled:opacity-50"
+                  >
+                    {aiSaving ? (
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    ) : (
+                      <Trash2 className="w-4 h-4 mr-2" />
+                    )}
+                    Remove API Key
+                  </button>
+                </div>
+              )}
+
+              {/* Features Info */}
+              <div className="mt-6 p-4 rounded-md bg-[#2E5BFF]/10 border border-[#2E5BFF]/30">
+                <h3 className="font-medium text-[#2E5BFF] text-sm mb-2">AI Features</h3>
+                <ul className="text-xs text-gray-300 space-y-1">
+                  <li>• Predict future data quality trends based on historical patterns</li>
+                  <li>• Get AI-generated insights and recommendations</li>
+                  <li>• Estimate critical thresholds and resolution timelines</li>
+                  <li>• Identify potential issues before they become critical</li>
+                </ul>
               </div>
             </div>
           )}

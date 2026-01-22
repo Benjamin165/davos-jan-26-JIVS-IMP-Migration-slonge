@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   Layers,
   ClipboardCheck,
+  TrendingUp,
   GitCompare,
   Settings,
   Users,
@@ -21,6 +22,7 @@ const navItems = [
   { path: '/dashboards', icon: Layers, label: 'My Dashboards' },
   { path: '/visualizations', icon: BarChart3, label: 'Visualizations' },
   { path: '/test-rules', icon: ClipboardCheck, label: 'Test Rules' },
+  { path: '/trends', icon: TrendingUp, label: 'Data Quality Trends' },
   { path: '/comparison', icon: GitCompare, label: 'Comparison' },
   { path: '/settings', icon: Settings, label: 'Settings' }
 ]

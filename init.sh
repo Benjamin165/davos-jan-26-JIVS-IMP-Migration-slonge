@@ -44,7 +44,7 @@ cd backend
 if [ ! -f "package.json" ]; then
     npm init -y
 fi
-npm install express cors jsonwebtoken bcryptjs better-sqlite3 dotenv xlsx uuid
+npm install express cors jsonwebtoken bcryptjs better-sqlite3 dotenv xlsx uuid openai
 npm install --save-dev nodemon
 
 # Install frontend dependencies

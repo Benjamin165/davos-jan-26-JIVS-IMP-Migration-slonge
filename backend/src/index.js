@@ -14,6 +14,7 @@ import runsRoutes from './routes/runs.js';
 import notificationRoutes from './routes/notifications.js';
 import exportRoutes from './routes/exports.js';
 import aiRoutes from './routes/ai.js';
+import trendsRoutes from './routes/trends.js';
 import { initializeDatabase } from './models/database.js';
 
 dotenv.config();
@@ -52,6 +53,7 @@ app.use('/api/runs', runsRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/exports', exportRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/trends', trendsRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
