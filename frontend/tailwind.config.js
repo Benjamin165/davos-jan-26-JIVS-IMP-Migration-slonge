@@ -13,21 +13,30 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        // OCC-inspired primary colors
+        // JIVS Design System Colors
+        'jivs-canvas': '#0D0D0D',        // Main app background
+        'jivs-container': '#1A1A1A',     // Cards, containers
+        'jivs-elevated': '#222222',      // Hover states
+        'jivs-nested': '#111111',        // Nested cards within cards
+        'jivs-input': '#121212',         // Input field backgrounds
+        'jivs-border': '#2A2A2A',        // Standard borders
+        'jivs-border-input': '#333333',  // Input field borders
+        'jivs-nav-inactive': '#262626',  // Inactive navigation items
+        // JIVS Electric Blue Primary
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6', // Primary blue
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
-          950: '#172554',
+          50: '#e8edff',
+          100: '#d1dbff',
+          200: '#a3b7ff',
+          300: '#7593ff',
+          400: '#476fff',
+          500: '#2E5BFF', // JIVS Electric Blue
+          600: '#2549cc',
+          700: '#1c3799',
+          800: '#132566',
+          900: '#0a1333',
+          950: '#050919',
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -90,18 +99,19 @@ export default {
           800: '#991b1b',
           900: '#7f1d1d',
         },
-        // Dark mode backgrounds
+        // Dark mode backgrounds (legacy - kept for compatibility)
         dark: {
-          900: '#0f172a', // Deepest
-          800: '#1e293b', // Cards/panels
-          700: '#334155', // Hover states
-          600: '#475569', // Borders
+          900: '#0D0D0D', // Updated to JIVS canvas
+          800: '#1A1A1A', // Updated to JIVS container
+          700: '#222222', // Updated to JIVS elevated
+          600: '#2A2A2A', // Updated to JIVS border
         },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        'jivs': '4px', // JIVS standard radius for buttons/inputs
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
@@ -111,6 +121,8 @@ export default {
         'glow': '0 0 20px rgba(59, 130, 246, 0.5)',
         'glow-success': '0 0 20px rgba(16, 185, 129, 0.5)',
         'glow-error': '0 0 20px rgba(239, 68, 68, 0.5)',
+        'jivs-glow': '0 0 20px rgba(46, 91, 255, 0.3)', // JIVS primary glow
+        'jivs-card': '0 4px 6px -1px rgba(0, 0, 0, 0.5)', // JIVS card shadow
       },
       backdropBlur: {
         'glass': '4px',

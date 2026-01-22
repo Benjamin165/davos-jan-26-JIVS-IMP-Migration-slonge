@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Mail, Lock, Loader2, X, ArrowLeft } from 'lucide-react'
+import { Mail, Lock, Loader2, X } from 'lucide-react'
 import { useAuthStore } from '../context/authStore'
 import api from '../utils/api'
 
@@ -65,29 +65,29 @@ export default function Login() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ delay: 0.2 }}
+      transition={{ delay: 0.2, duration: 0.2 }}
     >
-      <h2 className="text-2xl font-bold text-center mb-6">Welcome Back</h2>
+      <h2 className="text-2xl font-bold text-center text-white tracking-tight mb-6">Welcome Back</h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="p-3 rounded-lg bg-error-500/20 border border-error-500/50 text-error-400 text-sm" role="alert" aria-live="assertive">
+          <div className="p-3 rounded-md bg-error-500/20 border border-error-500/50 text-error-400 text-sm" role="alert" aria-live="assertive">
             {error}
           </div>
         )}
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
+          <label htmlFor="email" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5">
             Email
           </label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
             <input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="input pl-10"
+              className="w-full pl-10 pr-4 py-2 bg-[#121212] border border-[#333] rounded-[4px] text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#2E5BFF]"
               placeholder="you@example.com"
               required
             />
@@ -95,17 +95,17 @@ export default function Login() {
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">
+          <label htmlFor="password" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5">
             Password
           </label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
             <input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="input pl-10"
+              className="w-full pl-10 pr-4 py-2 bg-[#121212] border border-[#333] rounded-[4px] text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#2E5BFF]"
               placeholder="••••••••"
               required
             />
@@ -114,12 +114,12 @@ export default function Login() {
 
         <div className="flex items-center justify-between text-sm">
           <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" className="rounded border-dark-600 bg-dark-700 text-primary-500" />
-            <span className="text-gray-400">Remember me</span>
+            <input type="checkbox" className="rounded border-[#333] bg-[#121212] text-[#2E5BFF] focus:ring-[#2E5BFF]" />
+            <span className="text-gray-400 text-xs">Remember me</span>
           </label>
           <button
             type="button"
-            className="text-primary-400 hover:text-primary-300"
+            className="text-[#2E5BFF] hover:brightness-110 transition-all text-xs"
             onClick={() => setShowForgotPassword(true)}
           >
             Forgot password?
@@ -129,7 +129,7 @@ export default function Login() {
         <button
           type="submit"
           disabled={isLoading}
-          className="btn-primary w-full py-3"
+          className="w-full py-2.5 bg-[#2E5BFF] text-white text-sm font-medium rounded-[4px] hover:brightness-110 transition-all disabled:opacity-50"
         >
           {isLoading ? (
             <Loader2 className="w-5 h-5 animate-spin mx-auto" />
@@ -141,19 +141,19 @@ export default function Login() {
 
       <p className="text-center text-gray-400 text-sm mt-6">
         Don't have an account?{' '}
-        <Link to="/register" className="text-primary-400 hover:text-primary-300">
+        <Link to="/register" className="text-[#2E5BFF] hover:brightness-110 transition-all">
           Sign up
         </Link>
       </p>
 
-      {/* Demo credentials hint */}
-      <div className="mt-6 p-3 rounded-lg bg-dark-700/50 text-xs text-gray-400">
+      {/* Demo credentials hint - JIVS styled */}
+      <div className="mt-6 p-3 rounded-md bg-[#111111] border border-[#2A2A2A] text-xs text-gray-400">
         <p className="font-medium text-gray-300 mb-1">Demo Credentials:</p>
         <p>Admin: admin@jivs.com / admin123</p>
         <p>User: user@jivs.com / user123</p>
       </div>
 
-      {/* Forgot Password Modal */}
+      {/* Forgot Password Modal - JIVS styled */}
       <AnimatePresence>
         {showForgotPassword && (
           <>
@@ -161,6 +161,7 @@ export default function Login() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
               className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
               onClick={closeForgotPassword}
             />
@@ -168,14 +169,15 @@ export default function Login() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
               className="fixed inset-0 z-50 flex items-center justify-center p-4"
             >
-              <div className="bg-dark-800 rounded-xl border border-dark-600 p-6 w-full max-w-md shadow-xl" onClick={(e) => e.stopPropagation()}>
+              <div className="bg-[#1A1A1A] rounded-md border border-[#2A2A2A] p-5 w-full max-w-md shadow-xl" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-semibold">Reset Password</h3>
+                  <h3 className="text-lg font-semibold text-white tracking-tight">Reset Password</h3>
                   <button
                     onClick={closeForgotPassword}
-                    className="p-1 rounded-lg hover:bg-dark-700 transition-colors"
+                    className="p-1 rounded-[4px] hover:bg-[#262626] transition-colors"
                   >
                     <X className="w-5 h-5 text-gray-400" />
                   </button>
@@ -183,16 +185,16 @@ export default function Login() {
 
                 {forgotSuccess ? (
                   <div className="text-center py-4">
-                    <div className="w-12 h-12 bg-success-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="w-12 h-12 bg-success-500/20 rounded-[4px] flex items-center justify-center mx-auto mb-4">
                       <Mail className="w-6 h-6 text-success-400" />
                     </div>
-                    <h4 className="text-lg font-medium mb-2">Check your email</h4>
+                    <h4 className="text-lg font-medium text-white mb-2">Check your email</h4>
                     <p className="text-gray-400 text-sm mb-4">
                       If an account exists with that email, we've sent password reset instructions.
                     </p>
                     <button
                       onClick={closeForgotPassword}
-                      className="btn-primary px-6 py-2"
+                      className="px-6 py-2 bg-[#2E5BFF] text-white text-sm font-medium rounded-[4px] hover:brightness-110 transition-all"
                     >
                       Back to Login
                     </button>
@@ -204,23 +206,23 @@ export default function Login() {
                     </p>
 
                     {forgotError && (
-                      <div className="p-3 rounded-lg bg-error-500/20 border border-error-500/50 text-error-400 text-sm" role="alert" aria-live="assertive">
+                      <div className="p-3 rounded-md bg-error-500/20 border border-error-500/50 text-error-400 text-sm" role="alert" aria-live="assertive">
                         {forgotError}
                       </div>
                     )}
 
                     <div>
-                      <label htmlFor="forgot-email" className="block text-sm font-medium text-gray-300 mb-1">
+                      <label htmlFor="forgot-email" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5">
                         Email
                       </label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                         <input
                           id="forgot-email"
                           type="email"
                           value={forgotEmail}
                           onChange={(e) => setForgotEmail(e.target.value)}
-                          className="input pl-10"
+                          className="w-full pl-10 pr-4 py-2 bg-[#121212] border border-[#333] rounded-[4px] text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#2E5BFF]"
                           placeholder="you@example.com"
                           required
                           autoFocus
@@ -232,14 +234,14 @@ export default function Login() {
                       <button
                         type="button"
                         onClick={closeForgotPassword}
-                        className="btn-secondary flex-1 py-2"
+                        className="flex-1 py-2 bg-[#262626] text-gray-300 text-sm font-medium rounded-[4px] hover:text-white hover:brightness-110 transition-all"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
                         disabled={forgotLoading}
-                        className="btn-primary flex-1 py-2"
+                        className="flex-1 py-2 bg-[#2E5BFF] text-white text-sm font-medium rounded-[4px] hover:brightness-110 transition-all disabled:opacity-50"
                       >
                         {forgotLoading ? (
                           <Loader2 className="w-5 h-5 animate-spin mx-auto" />

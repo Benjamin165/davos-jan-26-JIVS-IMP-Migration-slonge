@@ -27,26 +27,27 @@
     --radius: 0.5rem;
   }
 
+  /* JIVS Design System - Dark Mode */
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --background: 0 0% 5%;           /* #0D0D0D - JIVS canvas */
+    --foreground: 0 0% 98%;          /* Near white */
+    --card: 0 0% 10%;                /* #1A1A1A - JIVS container */
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 7%;              /* #111111 - JIVS nested */
+    --popover-foreground: 0 0% 98%;
+    --primary: 224 100% 59%;         /* #2E5BFF - JIVS Electric Blue */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 15%;           /* #262626 - JIVS nav inactive */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 13%;               /* #222222 - JIVS elevated */
+    --muted-foreground: 0 0% 60%;    /* Gray-400 equivalent */
+    --accent: 0 0% 13%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 16%;              /* #2A2A2A - JIVS border */
+    --input: 0 0% 7%;                /* #121212 - JIVS input */
+    --ring: 224 100% 59%;            /* JIVS Electric Blue */
   }
 }
 
@@ -64,22 +65,23 @@
     scroll-behavior: smooth;
   }
 
-  /* Custom scrollbar */
+  /* Custom scrollbar - JIVS styled */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-dark-900;
+    background: #0D0D0D;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-dark-600 rounded-full;
+    background: #2A2A2A;
+    border-radius: 9999px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-dark-700;
+    background: #333333;
   }
 
   /* Focus styles */
@@ -89,13 +91,182 @@
 }
 
 @layer components {
+  /* ========================================
+     JIVS Design System Component Classes
+     ======================================== */
+
+  /* JIVS Navigation - Segmented Control Pattern */
+  .jivs-nav-item {
+    @apply px-4 py-2 rounded-[4px] text-sm font-medium transition-all duration-200;
+  }
+
+  .jivs-nav-active {
+    background-color: #2E5BFF;
+    color: white;
+  }
+
+  .jivs-nav-inactive {
+    background-color: transparent;
+    color: #9CA3AF; /* gray-400 */
+  }
+
+  .jivs-nav-inactive:hover {
+    background-color: #262626;
+    color: white;
+  }
+
+  /* JIVS Cards */
+  .jivs-card {
+    background-color: #1A1A1A;
+    border: 1px solid #2A2A2A;
+    border-radius: 0.375rem;
+  }
+
+  .jivs-card-nested {
+    background-color: #111111;
+    border-radius: 0.375rem;
+  }
+
+  /* JIVS Tables */
+  .jivs-table {
+    @apply w-full text-sm;
+  }
+
+  .jivs-table thead {
+    background-color: transparent;
+  }
+
+  .jivs-table th {
+    @apply uppercase text-[11px] font-bold tracking-wider py-3 px-4 text-left;
+    color: #9CA3AF;
+  }
+
+  .jivs-table td {
+    @apply py-2 px-4;
+    border-bottom: 1px solid #1A1A1A;
+  }
+
+  .jivs-table tbody tr {
+    @apply transition-colors cursor-pointer;
+  }
+
+  .jivs-table tbody tr:hover {
+    background-color: #222222;
+  }
+
+  /* JIVS Inputs */
+  .jivs-input {
+    @apply w-full px-3 py-2 text-white transition-all duration-200;
+    background-color: #121212;
+    border: 1px solid #333333;
+    border-radius: 4px;
+  }
+
+  .jivs-input::placeholder {
+    color: #6B7280;
+  }
+
+  .jivs-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #2E5BFF;
+    border-color: transparent;
+  }
+
+  .jivs-input-right {
+    @apply jivs-input text-right;
+  }
+
+  /* JIVS Select */
+  .jivs-select {
+    @apply jivs-input appearance-none cursor-pointer pr-10;
+  }
+
+  /* JIVS Buttons */
+  .jivs-btn {
+    @apply inline-flex items-center justify-center font-medium transition-all duration-200;
+    border-radius: 4px;
+  }
+
+  .jivs-btn:hover {
+    filter: brightness(1.1);
+  }
+
+  .jivs-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .jivs-btn-primary {
+    @apply jivs-btn px-4 py-2 text-white;
+    background-color: #2E5BFF;
+  }
+
+  .jivs-btn-secondary {
+    @apply jivs-btn px-4 py-2;
+    background-color: #262626;
+    color: #D1D5DB;
+  }
+
+  .jivs-btn-secondary:hover {
+    color: white;
+  }
+
+  .jivs-btn-ghost {
+    @apply jivs-btn px-4 py-2;
+    background-color: transparent;
+    color: #9CA3AF;
+  }
+
+  .jivs-btn-ghost:hover {
+    background-color: #262626;
+    color: white;
+  }
+
+  /* JIVS Status Badges */
+  .jivs-badge {
+    @apply inline-flex items-center px-2 py-0.5 text-xs font-medium;
+    border-radius: 4px;
+  }
+
+  .jivs-badge-success {
+    background-color: rgba(16, 185, 129, 0.2);
+    color: #34D399;
+  }
+
+  .jivs-badge-warning {
+    background-color: rgba(245, 158, 11, 0.2);
+    color: #FBBF24;
+  }
+
+  .jivs-badge-error {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #F87171;
+  }
+
+  .jivs-badge-info {
+    background-color: rgba(46, 91, 255, 0.2);
+    color: #2E5BFF;
+  }
+
+  /* JIVS Section Headers */
+  .jivs-section-header {
+    @apply uppercase text-[11px] font-bold tracking-wider;
+    color: #6B7280;
+  }
+
+  /* ========================================
+     Legacy Glass morphism (kept for compatibility)
+     ======================================== */
+
   /* Glass morphism effect */
   .glass {
     @apply bg-white/10 backdrop-blur-md border border-white/20;
   }
 
   .glass-dark {
-    @apply bg-dark-800/80 backdrop-blur-md border border-dark-600/50;
+    background-color: rgba(26, 26, 26, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(42, 42, 42, 0.5);
   }
 
   /* Gradient backgrounds */
@@ -115,9 +286,14 @@
     @apply bg-gradient-to-r from-error-600 to-error-400;
   }
 
-  /* Card styles */
+  /* Card styles - Updated for JIVS */
   .card {
-    @apply bg-white dark:bg-dark-800 rounded-xl shadow-lg border border-gray-200 dark:border-dark-600;
+    @apply bg-white rounded-xl shadow-lg border border-gray-200;
+  }
+
+  .dark .card {
+    background-color: #1A1A1A;
+    border-color: #2A2A2A;
   }
 
   .card-glass {
@@ -151,12 +327,22 @@
     @apply focus-visible:ring-error-500;
   }
 
-  /* Input styles */
+  /* Input styles - Updated for JIVS */
   .input {
-    @apply w-full px-4 py-2 rounded-lg border bg-dark-800 border-dark-600;
-    @apply text-white placeholder:text-gray-400;
-    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
-    @apply transition-all duration-200;
+    @apply w-full px-4 py-2 text-white transition-all duration-200;
+    background-color: #121212;
+    border: 1px solid #333333;
+    border-radius: 4px;
+  }
+
+  .input::placeholder {
+    color: #6B7280;
+  }
+
+  .input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #2E5BFF;
+    border-color: transparent;
   }
 
   /* Status badges */
@@ -180,9 +366,10 @@
     @apply badge bg-primary-500/20 text-primary-400;
   }
 
-  /* Table styles */
+  /* Table styles - Updated for JIVS */
   .table-container {
-    @apply overflow-x-auto rounded-lg border border-dark-600;
+    @apply overflow-x-auto rounded-md;
+    border: 1px solid #2A2A2A;
   }
 
   .table {
@@ -190,24 +377,31 @@
   }
 
   .table thead {
-    @apply bg-dark-700/50 text-gray-300 uppercase text-xs;
+    background-color: transparent;
   }
 
   .table th {
-    @apply px-4 py-3 font-semibold;
+    @apply uppercase text-[11px] font-bold tracking-wider px-4 py-3;
+    color: #9CA3AF;
   }
 
   .table td {
-    @apply px-4 py-3 border-t border-dark-600;
+    @apply px-4 py-2;
+    border-top: 1px solid #1A1A1A;
   }
 
   .table tbody tr {
-    @apply hover:bg-dark-700/30 transition-colors;
+    @apply transition-colors;
   }
 
-  /* Skeleton loading */
+  .table tbody tr:hover {
+    background-color: #222222;
+  }
+
+  /* Skeleton loading - Updated for JIVS */
   .skeleton {
-    @apply animate-pulse bg-dark-700 rounded;
+    @apply animate-pulse rounded;
+    background-color: #222222;
   }
 }
 
@@ -228,9 +422,9 @@
     }
   }
 
-  /* Glow effects */
+  /* Glow effects - Updated for JIVS */
   .glow-primary {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 0 20px rgba(46, 91, 255, 0.4);
   }
 
   .glow-success {
@@ -239,6 +433,10 @@
 
   .glow-error {
     box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+  }
+
+  .glow-jivs {
+    box-shadow: 0 0 20px rgba(46, 91, 255, 0.3);
   }
 
   /* Text gradient */

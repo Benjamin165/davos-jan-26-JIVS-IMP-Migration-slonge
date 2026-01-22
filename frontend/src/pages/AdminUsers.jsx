@@ -47,33 +47,34 @@ export default function AdminUsers() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">User Management</h1>
-          <p className="text-gray-400">Manage application users and roles</p>
+          <h1 className="text-2xl font-bold text-white tracking-tight">User Management</h1>
+          <p className="text-gray-400 text-sm">Manage application users and roles</p>
         </div>
         <button
           onClick={() => fetchUsers(pagination.page)}
           disabled={isLoading}
-          className="btn-secondary px-4 py-2"
+          className="inline-flex items-center px-4 py-2 bg-[#262626] text-gray-300 rounded-[4px] hover:text-white hover:brightness-110 transition-all disabled:opacity-50"
         >
           <RefreshCw className={cn('w-4 h-4 mr-2', isLoading && 'animate-spin')} />
           Refresh
         </button>
       </div>
 
-      {/* Stats */}
+      {/* Stats - JIVS styled */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="card p-4"
+          transition={{ duration: 0.2 }}
+          className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-md p-4"
         >
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-lg bg-primary-500/20">
-              <Users className="w-6 h-6 text-primary-400" />
+            <div className="p-2 rounded-[4px] bg-[#2E5BFF]/20">
+              <Users className="w-6 h-6 text-[#2E5BFF]" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{pagination.total}</p>
-              <p className="text-sm text-gray-400">Total Users</p>
+              <p className="text-2xl font-bold text-white">{pagination.total}</p>
+              <p className="text-xs text-gray-400 uppercase tracking-wider">Total Users</p>
             </div>
           </div>
         </motion.div>
@@ -81,18 +82,18 @@ export default function AdminUsers() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="card p-4"
+          transition={{ delay: 0.1, duration: 0.2 }}
+          className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-md p-4"
         >
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-lg bg-success-500/20">
+            <div className="p-2 rounded-[4px] bg-success-500/20">
               <Shield className="w-6 h-6 text-success-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold">
+              <p className="text-2xl font-bold text-success-400">
                 {users.filter(u => u.role === 'admin').length}
               </p>
-              <p className="text-sm text-gray-400">Admins</p>
+              <p className="text-xs text-gray-400 uppercase tracking-wider">Admins</p>
             </div>
           </div>
         </motion.div>
@@ -100,119 +101,119 @@ export default function AdminUsers() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="card p-4"
+          transition={{ delay: 0.2, duration: 0.2 }}
+          className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-md p-4"
         >
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-lg bg-warning-500/20">
+            <div className="p-2 rounded-[4px] bg-warning-500/20">
               <User className="w-6 h-6 text-warning-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold">
+              <p className="text-2xl font-bold text-warning-400">
                 {users.filter(u => u.role === 'user').length}
               </p>
-              <p className="text-sm text-gray-400">Regular Users</p>
+              <p className="text-xs text-gray-400 uppercase tracking-wider">Regular Users</p>
             </div>
           </div>
         </motion.div>
       </div>
 
-      {/* Search */}
+      {/* Search - JIVS styled */}
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
           <input
             type="text"
             placeholder="Search users..."
             value={search}
             onChange={handleSearch}
-            className="input pl-10"
+            className="w-full pl-10 pr-4 py-2 bg-[#121212] border border-[#333] rounded-[4px] text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#2E5BFF]"
           />
         </div>
       </div>
 
-      {/* Users Table */}
+      {/* Users Table - JIVS styled */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="card overflow-hidden"
+        transition={{ delay: 0.3, duration: 0.2 }}
+        className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-md overflow-hidden"
       >
-        <div className="table-container">
-          <table className="table">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
             <thead>
               <tr>
-                <th>User</th>
-                <th>Role</th>
-                <th>Created</th>
-                <th>Status</th>
-                <th className="text-right">Actions</th>
+                <th className="px-4 py-3 text-left uppercase text-[11px] font-bold text-gray-400 tracking-wider">User</th>
+                <th className="px-4 py-3 text-left uppercase text-[11px] font-bold text-gray-400 tracking-wider">Role</th>
+                <th className="px-4 py-3 text-left uppercase text-[11px] font-bold text-gray-400 tracking-wider">Created</th>
+                <th className="px-4 py-3 text-left uppercase text-[11px] font-bold text-gray-400 tracking-wider">Status</th>
+                <th className="px-4 py-3 text-right uppercase text-[11px] font-bold text-gray-400 tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i}>
-                    <td>
+                  <tr key={i} className="border-b border-[#1A1A1A]">
+                    <td className="px-4 py-2">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full skeleton" />
+                        <div className="w-10 h-10 rounded-[4px] bg-[#222222] animate-pulse" />
                         <div className="space-y-2">
-                          <div className="h-4 w-32 skeleton" />
-                          <div className="h-3 w-40 skeleton" />
+                          <div className="h-4 w-32 bg-[#222222] rounded animate-pulse" />
+                          <div className="h-3 w-40 bg-[#222222] rounded animate-pulse" />
                         </div>
                       </div>
                     </td>
-                    <td><div className="h-6 w-16 skeleton rounded-full" /></td>
-                    <td><div className="h-4 w-24 skeleton" /></td>
-                    <td><div className="h-6 w-16 skeleton rounded-full" /></td>
-                    <td><div className="h-8 w-8 skeleton rounded ml-auto" /></td>
+                    <td className="px-4 py-2"><div className="h-5 w-16 bg-[#222222] rounded-[4px] animate-pulse" /></td>
+                    <td className="px-4 py-2"><div className="h-4 w-24 bg-[#222222] rounded animate-pulse" /></td>
+                    <td className="px-4 py-2"><div className="h-5 w-16 bg-[#222222] rounded-[4px] animate-pulse" /></td>
+                    <td className="px-4 py-2"><div className="h-8 w-8 bg-[#222222] rounded-[4px] ml-auto animate-pulse" /></td>
                   </tr>
                 ))
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-8 text-gray-400">
+                  <td colSpan={5} className="text-center py-8 text-gray-500">
                     No users found
                   </td>
                 </tr>
               ) : (
                 users.map((user) => (
-                  <tr key={user.id}>
-                    <td>
+                  <tr key={user.id} className="border-b border-[#1A1A1A] hover:bg-[#222222] transition-colors">
+                    <td className="px-4 py-2">
                       <div className="flex items-center gap-3">
                         <div className={cn(
-                          'w-10 h-10 rounded-full flex items-center justify-center',
-                          user.role === 'admin' ? 'bg-primary-500/20' : 'bg-gray-500/20'
+                          'w-10 h-10 rounded-[4px] flex items-center justify-center',
+                          user.role === 'admin' ? 'bg-[#2E5BFF]/20' : 'bg-gray-500/20'
                         )}>
                           {user.role === 'admin' ? (
-                            <Shield className="w-5 h-5 text-primary-400" />
+                            <Shield className="w-5 h-5 text-[#2E5BFF]" />
                           ) : (
                             <User className="w-5 h-5 text-gray-400" />
                           )}
                         </div>
                         <div>
-                          <p className="font-medium">{user.name}</p>
-                          <p className="text-sm text-gray-400">{user.email}</p>
+                          <p className="font-medium text-white">{user.name}</p>
+                          <p className="text-xs text-gray-500">{user.email}</p>
                         </div>
                       </div>
                     </td>
-                    <td>
+                    <td className="px-4 py-2">
                       <span className={cn(
-                        'badge',
+                        'px-2 py-0.5 rounded-[4px] text-xs font-medium',
                         user.role === 'admin'
-                          ? 'bg-primary-500/20 text-primary-400'
+                          ? 'bg-[#2E5BFF]/20 text-[#2E5BFF]'
                           : 'bg-gray-500/20 text-gray-400'
                       )}>
                         {user.role}
                       </span>
                     </td>
-                    <td className="text-gray-400">
+                    <td className="px-4 py-2 text-gray-400 text-sm">
                       {new Date(user.created_at).toLocaleDateString()}
                     </td>
-                    <td>
-                      <span className="badge-success">Active</span>
+                    <td className="px-4 py-2">
+                      <span className="px-2 py-0.5 rounded-[4px] text-xs font-medium bg-success-500/20 text-success-400">Active</span>
                     </td>
-                    <td className="text-right">
-                      <button className="p-2 rounded-lg hover:bg-dark-700/50">
+                    <td className="px-4 py-2 text-right">
+                      <button className="p-2 rounded-[4px] hover:bg-[#262626] transition-colors">
                         <MoreVertical className="w-4 h-4 text-gray-400" />
                       </button>
                     </td>
@@ -225,7 +226,7 @@ export default function AdminUsers() {
 
         {/* Pagination */}
         {pagination.totalPages > 1 && (
-          <div className="flex items-center justify-between p-4 border-t border-dark-600">
+          <div className="flex items-center justify-between p-4 border-t border-[#2A2A2A]">
             <p className="text-sm text-gray-400">
               Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
               {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
@@ -235,14 +236,14 @@ export default function AdminUsers() {
               <button
                 onClick={() => fetchUsers(pagination.page - 1)}
                 disabled={pagination.page === 1}
-                className="btn-secondary px-3 py-1 text-sm disabled:opacity-50"
+                className="px-3 py-1.5 text-sm bg-[#262626] text-gray-300 rounded-[4px] hover:text-white hover:brightness-110 transition-all disabled:opacity-50"
               >
                 Previous
               </button>
               <button
                 onClick={() => fetchUsers(pagination.page + 1)}
                 disabled={pagination.page === pagination.totalPages}
-                className="btn-secondary px-3 py-1 text-sm disabled:opacity-50"
+                className="px-3 py-1.5 text-sm bg-[#262626] text-gray-300 rounded-[4px] hover:text-white hover:brightness-110 transition-all disabled:opacity-50"
               >
                 Next
               </button>

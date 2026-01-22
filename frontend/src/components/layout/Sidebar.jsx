@@ -33,22 +33,22 @@ export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false)
   const { user } = useAuthStore()
 
+  // JIVS Segmented Navigation Item
   const NavItem = ({ item }) => (
     <NavLink
       to={item.path}
       onClick={() => setIsOpen(false)}
       className={({ isActive }) =>
         cn(
-          'flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200',
-          'hover:bg-gray-100 dark:hover:bg-dark-700/50',
+          'flex items-center gap-3 px-4 py-2.5 rounded-[4px] transition-all duration-200',
           isActive
-            ? 'bg-primary-500/20 text-primary-600 dark:text-primary-400 border-l-2 border-primary-500'
-            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+            ? 'bg-[#2E5BFF] text-white'
+            : 'bg-transparent text-gray-400 hover:bg-[#262626] hover:text-white'
         )
       }
     >
       <item.icon className="w-5 h-5" />
-      <span className="font-medium">{item.label}</span>
+      <span className="font-medium text-sm">{item.label}</span>
     </NavLink>
   )
 
@@ -56,7 +56,7 @@ export default function Sidebar() {
     <>
       {/* Mobile menu button */}
       <button
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white dark:bg-dark-800 text-gray-900 dark:text-white shadow-md"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-[4px] bg-[#1A1A1A] text-white shadow-md border border-[#2A2A2A]"
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Toggle menu"
       >
@@ -70,34 +70,34 @@ export default function Sidebar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="lg:hidden fixed inset-0 bg-black/50 z-40"
+            className="lg:hidden fixed inset-0 bg-black/60 z-40"
             onClick={() => setIsOpen(false)}
           />
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
+      {/* Sidebar - JIVS Container Style */}
       <aside
         className={cn(
-          'fixed top-0 left-0 z-40 h-screen w-64 bg-white dark:bg-dark-800 border-r border-gray-200 dark:border-dark-600',
+          'fixed top-0 left-0 z-40 h-screen w-64 bg-[#1A1A1A] border-r border-[#2A2A2A]',
           'transition-transform duration-300 ease-in-out lg:translate-x-0',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        {/* Logo */}
-        <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-200 dark:border-dark-600">
-          <div className="w-10 h-10 rounded-lg bg-primary-500/20 flex items-center justify-center">
-            <Database className="w-6 h-6 text-primary-500" />
+        {/* Logo - JIVS Branded Header */}
+        <div className="flex items-center gap-3 px-6 py-5 border-b border-[#2A2A2A]">
+          <div className="w-10 h-10 rounded-md bg-gradient-to-br from-[#2E5BFF] to-[#1a3a99] flex items-center justify-center shadow-jivs-glow">
+            <Database className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="font-bold text-gray-900 dark:text-white">JIVS Migration</h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Visual Companion</p>
+            <h1 className="font-bold text-white tracking-tight">JIVS Migration</h1>
+            <p className="text-xs text-gray-500">Visual Companion</p>
           </div>
         </div>
 
         {/* Navigation */}
         <nav className="p-4 space-y-1">
-          <p className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          <p className="px-4 py-2 uppercase text-[11px] font-bold text-gray-500 tracking-wider">
             Main Menu
           </p>
           {navItems.map((item) => (
@@ -107,7 +107,7 @@ export default function Sidebar() {
           {user?.role === 'admin' && (
             <>
               <div className="pt-4">
-                <p className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <p className="px-4 py-2 uppercase text-[11px] font-bold text-gray-500 tracking-wider">
                   Admin
                 </p>
               </div>
@@ -119,10 +119,10 @@ export default function Sidebar() {
         </nav>
 
         {/* Footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-dark-600">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-[#2A2A2A]">
           <div className="text-xs text-gray-500 text-center">
             <p>JIVS IMP Migration</p>
-            <p>v1.0.0</p>
+            <p className="text-gray-600">v1.0.0</p>
           </div>
         </div>
       </aside>

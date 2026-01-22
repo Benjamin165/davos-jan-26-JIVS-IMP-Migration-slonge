@@ -6,7 +6,7 @@ import Breadcrumbs from '../ui/Breadcrumbs'
 
 export default function MainLayout() {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-dark-900 text-gray-900 dark:text-white">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0D0D0D] text-gray-900 dark:text-white">
       <AlertBanner />
       <Sidebar />
       <div className="lg:pl-64">
